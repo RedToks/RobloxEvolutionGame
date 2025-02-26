@@ -4,8 +4,14 @@ using UnityEngine;
 public class SkinData
 {
     public string name;
-    public Sprite textureSprite; // Новый спрайт для baseMap
-    public int price;
+    public Sprite textureSprite;
+    public Sprite icon;
+
+    public enum CurrencyType { BrainCoin, CoinCoin }
+    public CurrencyType priceType;
+
+    public int brainCoinPrice;
+    public int coinCoinPrice;
+
     public bool isPurchased;
-    public Sprite icon; // Иконка скина
 }

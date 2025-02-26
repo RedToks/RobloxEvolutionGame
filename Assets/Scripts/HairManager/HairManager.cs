@@ -10,7 +10,6 @@ public class HairManager : MonoBehaviour
     public GameObject hairButtonPrefab; // Префаб кнопки
     public HairColorPicker hairColorPicker;
 
-    private int coins; // Текущие монеты
     private int selectedHairIndex = 0;
 
     private void Start()
@@ -22,6 +21,7 @@ public class HairManager : MonoBehaviour
 
     private void GenerateHairButtons()
     {
+        // Очищаем панель
         foreach (Transform child in contentPanel)
         {
             Destroy(child.gameObject);
@@ -37,23 +37,46 @@ public class HairManager : MonoBehaviour
         }
     }
 
-    public void BuyHair(int index)
+    public void BuyHair(int index, Hair.CurrencyType currencyType)
     {
         if (index >= 0 && index < hairs.Count)
         {
-            if (hairs[index].isPurchased)
+            Hair hair = hairs[index];
+            if (hair.isPurchased)
             {
                 ActivateHair(index);
+                return;
             }
-            else if (coins >= hairs[index].price)
+
+            if (currencyType == Hair.CurrencyType.BrainCoin)
             {
-                coins -= hairs[index].price;
-                hairs[index].isPurchased = true;
-                PlayerPrefs.SetInt($"Hair_{index}", 1); // Сохраняем покупку
-                PlayerPrefs.SetInt("Coins", coins);
-                ActivateHair(index);
+                if (BrainCurrency.Instance.brainCurrency >= hair.brainCoinPrice)
+                {
+                    BrainCurrency.Instance.SpendBrainCurrency(hair.brainCoinPrice);
+                    hair.isPurchased = true;
+                    PlayerPrefs.SetInt($"Hair_{index}", 1);
+                    ActivateHair(index);
+                }
+                else
+                {
+                    Debug.Log("Not enough BrainCoins!");
+                }
             }
-            GenerateHairButtons(); // Обновляем кнопки после покупки
+            else if (currencyType == Hair.CurrencyType.CoinCoin)
+            {
+                if (NeuroCurrency.Instance.coinCurrency >= hair.coinCoinPrice)
+                {
+                    NeuroCurrency.Instance.SpendCoinCurrency(hair.coinCoinPrice);
+                    hair.isPurchased = true;
+                    PlayerPrefs.SetInt($"Hair_{index}", 1);
+                    ActivateHair(index);
+                }
+                else
+                {
+                    Debug.Log("Not enough CoinCoins!");
+                }
+            }
+            GenerateHairButtons(); // Обновляем интерфейс после покупки
         }
     }
 
@@ -61,13 +84,12 @@ public class HairManager : MonoBehaviour
     {
         if (hairs[index].isPurchased)
         {
-            // Выключаем все волосы
+            // Выключаем все прически
             foreach (Hair hair in hairs)
             {
                 hair.hairPrefab.SetActive(false);
             }
-
-            // Включаем выбранные волосы
+            // Включаем выбранную прическу
             hairs[index].hairPrefab.SetActive(true);
             hairColorPicker.SetCurrentHairRenderer(hairs[index].hairPrefab);
             selectedHairIndex = index;
@@ -80,6 +102,7 @@ public class HairManager : MonoBehaviour
     {
         for (int i = 0; i < hairs.Count; i++)
         {
+            // Первая прическа дается бесплатно
             hairs[i].isPurchased = (i == 0) || PlayerPrefs.GetInt($"Hair_{i}", 0) == 1;
         }
 

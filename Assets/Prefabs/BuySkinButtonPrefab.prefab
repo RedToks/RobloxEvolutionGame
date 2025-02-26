@@ -290,6 +290,8 @@ MonoBehaviour:
   priceText: {fileID: 3526142111161314502}
   buyButton: {fileID: 5361882534793926398}
   checkmark: {fileID: 3512583522736987473}
+  affordableColor: {r: 0.37169808, g: 1, b: 0.37169808, a: 1}
+  unaffordableColor: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
 --- !u!1 &8043951003963953116
 GameObject:
   m_ObjectHideFlags: 0
@@ -374,7 +376,7 @@ MonoBehaviour:
     bottomLeft: {r: 1, g: 1, b: 1, a: 1}
     bottomRight: {r: 1, g: 1, b: 1, a: 1}
   m_fontColorGradientPreset: {fileID: 0}
-  m_spriteAsset: {fileID: 0}
+  m_spriteAsset: {fileID: 11400000, guid: 3d8db23007131a343bd811c04f61db0f, type: 2}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
   m_TextStyleHashCode: -1183493901

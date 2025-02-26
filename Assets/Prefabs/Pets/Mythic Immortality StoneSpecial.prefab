@@ -1,0 +1,181 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3501106353687083538
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1402057528785040385}
+  m_Layer: 0
+  m_Name: Mythic Immortality StoneSpecial
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1402057528785040385
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3501106353687083538}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -63.533, y: 3.631, z: 37.594}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1654264625347547532}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1260895281636488807
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1402057528785040385}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.59199905
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.23220015
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.406002
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7313591699870647820, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e67e5b7c41a9b3846b7149ce2cdd9c2e, type: 2}
+    - target: {fileID: -6601449447289514616, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 64874366d96582543bc0e6261b17a711, type: 2}
+    - target: {fileID: -5396728815604008656, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -2582474854381182175, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 64874366d96582543bc0e6261b17a711, type: 2}
+    - target: {fileID: 919132149155446097, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Name
+      value: Mythic Immortality Stone
+      objectReference: {fileID: 0}
+    - target: {fileID: 1079053310369334562, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e67e5b7c41a9b3846b7149ce2cdd9c2e, type: 2}
+    - target: {fileID: 2347543214938377502, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 79af65e968dabc44a9aa010f358aa6fb, type: 2}
+    - target: {fileID: 4054730091611463153, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e67e5b7c41a9b3846b7149ce2cdd9c2e, type: 2}
+    - target: {fileID: 6683132269879140725, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 79af65e968dabc44a9aa010f358aa6fb, type: 2}
+    - target: {fileID: 7875757065044496991, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 6378d0d509af96244915a79a83b0f1b3, type: 2}
+    - target: {fileID: 8117943976927790369, guid: e64f41e85c4935d44acf07630e8bf7ba,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b44b945b4afe3084a85cbe95ef67f77e, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects:
+    - {fileID: -5396728815604008656, guid: e64f41e85c4935d44acf07630e8bf7ba, type: 3}
+    - {fileID: -5613622135826934372, guid: e64f41e85c4935d44acf07630e8bf7ba, type: 3}
+    - {fileID: -9210511273895709116, guid: e64f41e85c4935d44acf07630e8bf7ba, type: 3}
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e64f41e85c4935d44acf07630e8bf7ba, type: 3}
+--- !u!4 &1654264625347547532 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e64f41e85c4935d44acf07630e8bf7ba,
+    type: 3}
+  m_PrefabInstance: {fileID: 1260895281636488807}
+  m_PrefabAsset: {fileID: 0}

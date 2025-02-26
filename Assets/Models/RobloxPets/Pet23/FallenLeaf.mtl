@@ -1,0 +1,30 @@
+newmtl Meshesfallvert61Mtl
+Material Color
+Ka 0.673049 0.173439 0.042987
+Kd 0.673049 0.173439 0.042987
+Ks 0.26658 0.0686955 0.0170262 
+
+d 1
+
+Ns 0
+
+newmtl Meshesfallvert00361Mtl
+Material Color
+Ka 0.358654 0.113921 0.0315514
+Kd 0.358654 0.113921 0.0315514
+Ks 0.142055 0.0451216 0.0124968 
+
+d 1
+
+Ns 0
+
+newmtl Meshesfallvert00441Mtl
+Material Color
+Ka 1 0.0891935 0
+Kd 1 0.0891935 0
+Ks 0.396078 0.0353276 0 
+
+d 1
+
+Ns 0
+

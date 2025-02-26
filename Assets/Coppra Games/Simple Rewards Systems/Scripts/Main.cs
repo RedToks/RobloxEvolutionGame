@@ -19,7 +19,6 @@ namespace CoppraGames
         {
             instance = this;
 
-            ShowDailyRewardsWindow(false);
             ShowQuestWindow(false);
             ShowSpinWheelWindow(false);
             ShowMainMenu(true);
@@ -27,7 +26,6 @@ namespace CoppraGames
 
         public void OnClickDailyRewardsButton()
         {
-            ShowDailyRewardsWindow(true);
             ShowQuestWindow(false);
             ShowSpinWheelWindow(false);
             ShowMainMenu(false);
@@ -36,7 +34,6 @@ namespace CoppraGames
         public void OnClickQuestButton()
         {
             ShowQuestWindow(true);
-            ShowDailyRewardsWindow(false);
             ShowSpinWheelWindow(false);
             ShowMainMenu(false);
         }
@@ -44,7 +41,6 @@ namespace CoppraGames
         public void OnClickSpinwheelButton()
         {
             ShowQuestWindow(false);
-            ShowDailyRewardsWindow(false);
             ShowSpinWheelWindow(true);
             ShowMainMenu(false);
         }
@@ -60,35 +56,6 @@ namespace CoppraGames
 
 
 
-        //DAILY REWARDS OPTIONS
-        public void ShowDailyRewardsWindow(bool isTrue)
-        {
-            if (DailyRewardsWindow)
-            {
-                DailyRewardsWindow.gameObject.SetActive(isTrue);
-
-                if (isTrue)
-                    DailyRewardsWindow.Init();
-                else
-                    ShowMainMenu(true);
-            }
-        }
-
-        public void OnClickResetDailyRewardsButton()
-        {
-            PlayerPrefs.DeleteAll();
-            DailyRewardsWindow.Init();
-        }
-
-        public void OnClickNextButton()
-        {
-            int currentDay = DailyRewardsWindow.GetDaysSinceSignUp();
-            var signTime = DateTime.Now - new TimeSpan((currentDay + 1) * 24, 0, 0);
-            PlayerPrefs.SetString("sign_up_time", signTime.ToString());
-            DailyRewardsWindow.Init();
-        }
-
-
         //QUESTS OPTIONS
         public void ShowQuestWindow(bool isTrue)
         {
@@ -101,26 +68,6 @@ namespace CoppraGames
                 else
                     ShowMainMenu(true);
             }
-        }
-
-        public void OnClickFinishMission()
-        {
-            QuestManager.instance.OnAchieveQuestGoal(QuestManager.QuestGoals.COMPLETE_MISSION);
-        }
-
-        public void OnClickUpgradeHero()
-        {
-            QuestManager.instance.OnAchieveQuestGoal(QuestManager.QuestGoals.UPGRADE_HERO);
-        }
-
-        public void OnClickKillEnemy()
-        {
-            QuestManager.instance.OnAchieveQuestGoal(QuestManager.QuestGoals.DESTROY_ENEMY);
-        }
-
-        public void OnClickCollectDailyRewards()
-        {
-            ShowDailyRewardsWindow(true);
         }
 
         public void OnClickResetQuest()

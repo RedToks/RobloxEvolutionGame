@@ -1,0 +1,34 @@
+newmtl Meshesmarshmallow1Mtl
+Material Color
+Ka 0.130352 0.325037 0.12753
+Kd 0.130352 0.325037 0.12753
+Ks 0.0516297 0.12874 0.0505118 
+
+d 1
+
+Ns 0
+
+newmtl Meshesmarshmallow2Mtl
+Material Color
+Ka 0.0265487 0.0677246 0.0356144
+Kd 0.0265487 0.0677246 0.0356144
+Ks 0.0105154 0.0268243 0.0141061 
+
+d 1
+
+Ns 0
+
+newmtl Meshessmoothcube12Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.396078 0.396078 0.396078 
+
+d 1
+
+Ns 0
+
+map_Ka Meshessmoothcube12_diff.png
+map_Kd Meshessmoothcube12_diff.png
+map_d Meshessmoothcube12_diff.png
+

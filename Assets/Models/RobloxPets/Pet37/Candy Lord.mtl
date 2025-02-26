@@ -1,0 +1,40 @@
+newmtl Meshesarch1Mtl
+Material Color
+Ka 0.113921 0 0.113921
+Kd 0.113921 0 0.113921
+Ks 0.0102752 0 0.0102752 
+
+d 1
+
+Ns 0
+
+newmtl Part1Mtl
+Material Color
+Ka 0.12753 0 0.12753
+Kd 0.12753 0 0.12753
+Ks 0.0115027 0 0.0115027 
+
+d 1
+
+Ns 0
+
+newmtl Horns1Mtl
+Material Color
+Ka 0.325037 0 0.325037
+Kd 0.325037 0 0.325037
+Ks 0.0293171 0 0.0293171 
+
+d 1
+
+Ns 0
+
+newmtl Tail1Mtl
+Material Color
+Ka 0.0915184 0 0.0915184
+Kd 0.0915184 0 0.0915184
+Ks 0.0082546 0 0.0082546 
+
+d 1
+
+Ns 0
+

@@ -1,0 +1,40 @@
+newmtl Meshesunicube00311Mtl
+Material Color
+Ka 0.373615 0.133209 0
+Kd 0.373615 0.133209 0
+Ks 0.0336986 0.0120149 0 
+
+d 1
+
+Ns 0
+
+newmtl Meshesunicube00511Mtl
+Material Color
+Ka 0.74453 0.0697271 0.0824142
+Kd 0.74453 0.0697271 0.0824142
+Ks 0.0671537 0.00628911 0.00743344 
+
+d 1
+
+Ns 0
+
+newmtl Meshesunicube00111Mtl
+Material Color
+Ka 0.373615 0.368591 0.383775
+Kd 0.373615 0.368591 0.383775
+Ks 0.0336986 0.0332455 0.034615 
+
+d 1
+
+Ns 0
+
+newmtl Meshesunicube11Mtl
+Material Color
+Ka 0.344026 0.339223 0.353741
+Kd 0.344026 0.339223 0.353741
+Ks 0.0310298 0.0305966 0.031906 
+
+d 1
+
+Ns 0
+

@@ -1,0 +1,120 @@
+newmtl Meshpart2Mtl
+Material Color
+Ka 1 0.0846415 0.0915184
+Kd 1 0.0846415 0.0915184
+Ks 0.0901961 0.00763433 0.0082546 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart1Mtl
+Material Color
+Ka 0.297653 0.238828 0.108711
+Kd 0.297653 0.238828 0.108711
+Ks 0.0268471 0.0215413 0.00980532 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart3Mtl
+Material Color
+Ka 0.101145 0 5.07705e-06
+Kd 0.101145 0 5.07705e-06
+Ks 0.0091229 0 4.5793e-07 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart4Mtl
+Material Color
+Ka 0 0 0
+Kd 0 0 0
+Ks 0 0 0 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart19Mtl
+Material Color
+Ka 1 0.101145 0.144972
+Kd 1 0.101145 0.144972
+Ks 0.0901961 0.0091229 0.0130759 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart6Mtl
+Material Color
+Ka 0.363604 0.0242229 0.0697271
+Kd 0.363604 0.0242229 0.0697271
+Ks 0.0327956 0.00218481 0.00628911 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart11Mtl
+Material Color
+Ka 1 0.00658496 0.0199178
+Kd 1 0.00658496 0.0199178
+Ks 0.0901961 0.000593937 0.00179651 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart7Mtl
+Material Color
+Ka 0.420508 0.0143105 0.0414519
+Kd 0.420508 0.0143105 0.0414519
+Ks 0.0379282 0.00129075 0.0037388 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart8Mtl
+Material Color
+Ka 1 0.00604059 0.018913
+Kd 1 0.00604059 0.018913
+Ks 0.0901961 0.000544838 0.00170588 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart15Mtl
+Material Color
+Ka 0.348865 0.348865 0.348865
+Kd 0.348865 0.348865 0.348865
+Ks 0.0314662 0.0314662 0.0314662 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart20Mtl
+Material Color
+Ka 0.193972 0.00369724 0.111299
+Kd 0.193972 0.00369724 0.111299
+Ks 0.0174955 0.000333476 0.0100388 
+
+d 1
+
+Ns 0
+
+newmtl Meshpart21Mtl
+Material Color
+Ka 0.415148 0 0.0891935
+Kd 0.415148 0 0.0891935
+Ks 0.0374447 0 0.00804491 
+
+d 1
+
+Ns 0
+

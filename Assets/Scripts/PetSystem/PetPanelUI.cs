@@ -11,6 +11,9 @@ public class PetPanelUI : MonoBehaviour
     public TextMeshProUGUI selectedCounter; // Текст для счетчика 4/3
     public Transform playerTransform; // Ссылка на игрока
     public Button equipBestButton; // Кнопка "Оснастить лучших"
+    public GameObject petPanel;
+
+    public NotificationIcon notificationIcon;
 
     [SerializeField] private List<Pet> allPets = new List<Pet>(); // Все питомцы
     private List<Pet> selectedPets = new List<Pet>(); // Выбранные питомцы
@@ -30,41 +33,40 @@ public class PetPanelUI : MonoBehaviour
 
     private void UpdateUI()
     {
-        // Обновляем счетчик выбранных питомцев
         selectedCounter.text = $"{selectedPets.Count}/{maxSelectedPets}";
 
-        // Удаляем старые элементы UI
+        // Очищаем контейнеры перед обновлением
         foreach (Transform child in selectedPetsContainer) Destroy(child.gameObject);
         foreach (Transform child in allPetsContainer) Destroy(child.gameObject);
 
-        // Обновляем выбранных питомцев (верхняя сетка)
+        // Сортируем всех питомцев по множителю (от большего к меньшему)
+        allPets.Sort((a, b) => b.Power.CompareTo(a.Power));
+
+        // Заполняем список выбранных питомцев
         foreach (var pet in selectedPets)
         {
             var petUI = Instantiate(petUIPrefab, selectedPetsContainer);
-            petUI.GetComponentInChildren<TextMeshProUGUI>().text = $"x{pet.Power}";
-            petUI.GetComponentInChildren<Image>().sprite = pet.Icon;
+            var petButton = petUI.GetComponent<PetButton>();
+            petButton.SetPet(pet);
 
-            // Добавляем кнопку для снятия выбора
-            var button = petUI.GetComponentInChildren<Button>();
-            button.onClick.AddListener(() => DeselectPet(pet));
+            petUI.GetComponent<Button>().onClick.AddListener(() => DeselectPet(pet));
         }
 
-        // Обновляем всех питомцев (нижняя сетка)
+        // Заполняем список всех питомцев (уже отсортированный)
         foreach (var pet in allPets)
         {
             var petUI = Instantiate(petUIPrefab, allPetsContainer);
-            petUI.GetComponentInChildren<TextMeshProUGUI>().text = $"x{pet.Power}";
-            petUI.GetComponentInChildren<Image>().sprite = pet.Icon;
+            var petButton = petUI.GetComponent<PetButton>();
+            petButton.SetPet(pet);
 
-            // Добавляем кнопку для выбора питомца
-            var button = petUI.GetComponentInChildren<Button>();
-            button.onClick.AddListener(() => SelectPet(pet));
+            petUI.GetComponent<Button>().onClick.AddListener(() => SelectPet(pet));
         }
     }
 
     public void AddPet(Pet pet)
     {
         allPets.Add(pet);
+        notificationIcon.SetNotification(true);
         UpdateUI();
     }
 
@@ -74,8 +76,9 @@ public class PetPanelUI : MonoBehaviour
         {
             selectedPets.Add(pet);
             allPets.Remove(pet);
-            SpawnPetPrefab(pet); // Создаем питомца в мире
+            SpawnPetPrefab(pet);
             UpdateUI();
+            UpdatePetMultiplier(); // Обновляем множитель питомцев
         }
     }
 
@@ -85,9 +88,21 @@ public class PetPanelUI : MonoBehaviour
         {
             selectedPets.Remove(pet);
             allPets.Add(pet);
-            RemovePetPrefab(pet); // Убираем питомца из мира
+            RemovePetPrefab(pet);
             UpdateUI();
+            UpdatePetMultiplier(); // Обновляем множитель питомцев
         }
+    }
+    private void UpdatePetMultiplier()
+    {
+        float totalPetMultiplier = 1f; // Начальный множитель
+
+        foreach (var pet in selectedPets)
+        {
+            totalPetMultiplier += pet.Power; // Суммируем множители всех выбранных питомцев
+        }
+
+        ClickMultiplier.Instance.SetPetMultiplier(totalPetMultiplier);
     }
 
     private void SpawnPetPrefab(Pet pet)
@@ -127,5 +142,12 @@ public class PetPanelUI : MonoBehaviour
         {
             SelectPet(bestPets[i]);
         }
+    }
+
+    public void OpenPetPanel()
+    {
+        petPanel.gameObject.SetActive(true); // Открываем панель
+        notificationIcon.SetNotification(false); // Убираем значок уведомления
+        UpdateUI(); // Обновляем интерфейс
     }
 }

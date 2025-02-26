@@ -23,7 +23,6 @@ namespace CoppraGames
         public Image RewardIcon;
         public TextMeshProUGUI RewardCountText;
 
-        public GameObject GoButton;
         public GameObject ClaimButton;
 
         public Color ClaimedColor;
@@ -55,10 +54,6 @@ namespace CoppraGames
 
 
 
-        public void OnClickGoButton()
-        {
-            GetComponentInParent<QuestWindow>().GoQuest(this);
-        }
 
         public void OnClickClaimButton()
         {
@@ -74,11 +69,11 @@ namespace CoppraGames
                 {
                     DescriptionText.text = _quest.description;
                 }
-
+                _quest.rewards.CalculateReward();
                 if (RewardIcon && RewardCountText)
                 {
                     RewardIcon.sprite = _quest.rewards.icon;
-                    RewardCountText.text = _quest.rewards.count.ToString();
+                    RewardCountText.text = CurrencyFormatter.FormatCurrency(_quest.rewards.count).ToString();
                 }
 
                 int progress = QuestManager.instance.GetQuestValue(_quest.index);
@@ -91,9 +86,8 @@ namespace CoppraGames
                     ProgressBar.SetProgress(percentage);
                 }
 
-                if (GoButton && ClaimButton)
+                if (ClaimButton)
                 {
-                    GoButton.SetActive(progress != goalValue);
                     ClaimButton.SetActive(progress >= goalValue);
                 }
 
@@ -102,7 +96,6 @@ namespace CoppraGames
                 this.ClaimedLabel.SetActive(isClaimed);
                 BG.color = isClaimed ? ClaimedColor : Color.white;
 
-                GoButton.SetActive(GoButton.activeSelf && !isClaimed);
                 ClaimButton.SetActive(ClaimButton.activeSelf && !isClaimed);
 
 

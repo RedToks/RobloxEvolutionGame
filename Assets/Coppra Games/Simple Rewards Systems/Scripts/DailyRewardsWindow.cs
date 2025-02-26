@@ -1,137 +1,140 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 namespace CoppraGames
 {
     public class DailyRewardsWindow : MonoBehaviour
     {
+        public enum RewardType
+        {
+            BrainCoin,
+            CoinCoin,
+            Pet
+        }
         [System.Serializable]
         public class RewardData
         {
             public Sprite icon;
             public int count;
             public int day;
+            public RewardType rewardType; // 🔥 Добавляем тип награды
         }
 
         public GameObject ResultPanel;
         public Image ResultIcon;
         public TextMeshProUGUI ResultCount;
-
         public Button ClaimButton;
-
         public RewardData[] rewards;
         public DailyRewardItem[] rewardItemComponents;
+        public TextMeshProUGUI timerText;
+        public NotificationIcon notificationIcon; // 🔹 Уведомление (восклицательный знак)
+
+        public GameObject specialPetPrefab;
+
+        public static DailyRewardsWindow instance;
+
+        private PetPanelUI petPanelUI;
+        private DateTime lastUpdateTime;
+        private int currentDay;
+        private const int resetDay = 7; // День, после которого сбрасывается прогресс
+        private const int updateInterval = 10; // Интервал обновления в секундах
+
+        void Awake()
+        {
+            instance = this;
+        }
 
         void Start()
         {
-            HideResult();
-            Init();
+            petPanelUI = FindObjectOfType<PetPanelUI>();
+            LoadData();
+            UpdateRewards();
+            StartCoroutine(UpdateTimerCoroutine());
         }
 
-        public void Init()
+        private void LoadData()
         {
-            ApplyValues();
+            lastUpdateTime = DateTime.Parse(PlayerPrefs.GetString("last_update_time", DateTime.Now.ToString()));
+            currentDay = PlayerPrefs.GetInt("current_day", 1);
         }
 
-        public void Close()
+        private IEnumerator UpdateTimerCoroutine()
         {
-            Main.instance.ShowDailyRewardsWindow(false);
-        }
-
-        public void ApplyValues()
-        {
-            int index = 0;
-            foreach (var r in rewards)
+            while (true)
             {
-                if (rewardItemComponents.Length > index)
-                {
-                    rewardItemComponents[index].SetData(r);
-                }
-
-                index++;
+                UpdateTimerUI();
+                yield return new WaitForSeconds(1);
             }
-
-            RefreshClaimButton();
         }
 
-        public int GetDaysSinceSignUp()
+        private void UpdateTimerUI()
         {
-            DateTime current = DateTime.Now;
-            DateTime signTime;
+            DateTime nextUpdateTime = lastUpdateTime.AddSeconds(updateInterval);
+            TimeSpan timeLeft = nextUpdateTime - DateTime.Now;
 
-            string signTimeString = PlayerPrefs.GetString("sign_up_time");
-            if (string.IsNullOrEmpty(signTimeString))
+            if (timeLeft.TotalSeconds > 0)
             {
-                signTime = DateTime.Now;
-                PlayerPrefs.SetString("sign_up_time", signTime.ToString());
+                timerText.text = string.Format("{0:D2}:{1:D2}:{2:D2}", timeLeft.Minutes, timeLeft.Seconds, timeLeft.Milliseconds / 10);
             }
             else
             {
-                if (!DateTime.TryParse(signTimeString, out signTime))
+                NextDay();
+            }
+        }
+
+        private void NextDay()
+        {
+            lastUpdateTime = DateTime.Now;
+            currentDay++;
+            QuestManager.instance.ResetAllDailyQuests();
+
+            if (currentDay > resetDay)
+            {
+                currentDay = 1; // Сбросить на день 1
+                ResetAllRewards(); // Сброс всех наград
+            }
+
+            PlayerPrefs.SetString("last_update_time", lastUpdateTime.ToString());
+            PlayerPrefs.SetInt("current_day", currentDay);
+            PlayerPrefs.Save();
+
+            UpdateRewards();
+        }
+
+        private void ResetAllRewards()
+        {
+            for (int i = 1; i <= resetDay; i++)
+            {
+                PlayerPrefs.DeleteKey("reward_claimed_" + i);
+            }
+            PlayerPrefs.Save();
+        }
+
+        private void UpdateRewards()
+        {
+            bool hasUnclaimedReward = false;
+
+            for (int i = 0; i < rewards.Length; i++)
+            {
+                bool isCurrentDay = rewards[i].day == currentDay;
+                bool isClaimed = IsDailyRewardClaimed(rewards[i].day);
+
+                rewardItemComponents[i].SetData(rewards[i], isCurrentDay);
+
+                // 🔹 Проверяем, есть ли хотя бы одна незабранная награда
+                if (isCurrentDay && !isClaimed)
                 {
-                    signTime = DateTime.Now;
+                    hasUnclaimedReward = true;
                 }
             }
 
-            TimeSpan timeSpan = current - signTime;
-            return timeSpan.Days;
-        }
+            // 🔹 Включаем/выключаем уведомление
+            notificationIcon.SetNotification(hasUnclaimedReward);
 
-        public bool IsDailyRewardReadyToCollect(int day)
-        {
-            int loginDay = GetDaysSinceSignUp();
-
-            return (loginDay >= day);
-        }
-
-        public bool IsDailyRewardClaimed(int day)
-        {
-            string key = "reward_claimed_" + day;
-            return (PlayerPrefs.GetInt(key, 0) == 1);
-        }
-
-        public void ClaimDailyReward(int day)
-        {
-            string key = "reward_claimed_" + day;
-            PlayerPrefs.SetInt(key, 1);
-
-            QuestManager.instance.OnAchieveQuestGoal(QuestManager.QuestGoals.COLLECT_DAILY_REWARDS);
-        }
-
-        public void ShowResult(int resultIndex)
-        {
-            StartCoroutine(_ShowResult(resultIndex));
-        }
-
-
-        private IEnumerator _ShowResult(int resultIndex)
-        {
-            if (ResultPanel)
-            {
-                ResultPanel.SetActive(true);
-
-                if (rewards.Length > resultIndex)
-                {
-                    ResultIcon.sprite = rewards[resultIndex].icon;
-                    ResultCount.text = "x" + rewards[resultIndex].count.ToString();
-                }
-
-                ResultPanel.GetComponent<Animator>().Play("clip");
-            }
-            yield return new WaitForSeconds(3.3f);
-            HideResult();
-        }
-
-        public void HideResult()
-        {
-            if (ResultPanel)
-            {
-                ResultPanel.SetActive(false);
-            }
+            RefreshClaimButton();
         }
 
         public void OnClickClaimButton()
@@ -142,30 +145,83 @@ namespace CoppraGames
                 if (!IsDailyRewardClaimed(day))
                 {
                     ClaimDailyReward(day);
-                    ShowResult(DailyRewardItem.selectedItem.GetDay());
-
-                    Init();
+                    ShowResult(day - 1);
+                    UpdateRewards();
                 }
             }
         }
 
-        public void RefreshClaimButton()
+        private void ClaimDailyReward(int day)
+        {
+            RewardData reward = rewards[day - 1]; // Получаем данные о награде
+
+            switch (reward.rewardType)
+            {
+                case RewardType.BrainCoin:
+                    BrainCurrency.Instance.AddBrainCurrency(reward.count);
+                    break;
+
+                case RewardType.CoinCoin:
+                    NeuroCurrency.Instance.AddCoinCurrency(reward.count);
+                    break;
+
+                case RewardType.Pet:
+                    GivePlayerPet(reward); // Выдаем питомца
+                    break;
+            }
+
+            PlayerPrefs.SetInt("reward_claimed_" + day, 1);
+            PlayerPrefs.Save();
+            QuestManager.instance.OnAchieveQuestGoal(QuestManager.QuestGoals.COLLECT_DAILY_REWARDS);
+        }
+
+        private void GivePlayerPet(RewardData reward)
+        {
+            Pet newPet = new Pet("Special Pet", reward.icon, specialPetPrefab, 500f, Pet.PetRarity.Special);
+            petPanelUI.AddPet(newPet);
+        }
+
+        public bool IsDailyRewardClaimed(int day)
+        {
+            return PlayerPrefs.GetInt("reward_claimed_" + day, 0) == 1;
+        }
+
+        private void RefreshClaimButton()
         {
             if (DailyRewardItem.selectedItem != null)
             {
                 int day = DailyRewardItem.selectedItem.GetDay();
-                bool isClaimed = IsDailyRewardClaimed(day);
-                bool isReadyToCollect = IsDailyRewardReadyToCollect(day);
-
-                this.ClaimButton.interactable = !isClaimed && isReadyToCollect;
+                ClaimButton.interactable = !IsDailyRewardClaimed(day);
             }
             else
-                this.ClaimButton.interactable = false;
+            {
+                ClaimButton.interactable = false;
+            }
         }
 
-        public void OnClickCloseButton()
+        private void ShowResult(int resultIndex)
         {
-            this.Close();
+            if (ResultPanel)
+            {
+                ResultPanel.SetActive(true);
+                ResultIcon.sprite = rewards[resultIndex].icon;
+                ResultCount.text = "x" + rewards[resultIndex].count.ToString();
+                ResultPanel.GetComponent<Animator>().Play("clip");
+            }
+            Invoke("HideResult", 3.3f);
+        }
+
+        public bool IsDailyRewardReadyToCollect(int day)
+        {
+            return currentDay >= day;
+        }
+
+        private void HideResult()
+        {
+            if (ResultPanel)
+            {
+                ResultPanel.SetActive(false);
+            }
         }
     }
 }

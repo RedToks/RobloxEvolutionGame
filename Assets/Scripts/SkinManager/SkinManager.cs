@@ -5,11 +5,10 @@ using TMPro;
 
 public class SkinManager : MonoBehaviour
 {
-    public SkinnedMeshRenderer playerRenderer; // Объект игрока
-    public List<SkinData> skins; // Список скинов
-    public GameObject skinButtonPrefab; // Префаб кнопки
-    public Transform contentPanel; // Контейнер кнопок (Grid Layout Group)
-    private int coins;
+    public SkinnedMeshRenderer playerRenderer;
+    public List<SkinData> skins;
+    public GameObject skinButtonPrefab;
+    public Transform contentPanel;
 
     private void Start()
     {
@@ -35,7 +34,6 @@ public class SkinManager : MonoBehaviour
         }
     }
 
-
     public void BuySkin(int index)
     {
         if (index >= 0 && index < skins.Count)
@@ -44,15 +42,26 @@ public class SkinManager : MonoBehaviour
             {
                 ActivateSkin(index);
             }
-            else if (coins >= skins[index].price)
+            else
             {
-                coins -= skins[index].price;
-                skins[index].isPurchased = true;
-                PlayerPrefs.SetInt($"Skin_{index}", 1); // Сохраняем покупку
-                PlayerPrefs.SetInt("Coins", coins);
-                ActivateSkin(index);
+                long playerCurrency = (skins[index].priceType == SkinData.CurrencyType.BrainCoin) ?
+                    BrainCurrency.Instance.brainCurrency : NeuroCurrency.Instance.coinCurrency;
+                long price = (skins[index].priceType == SkinData.CurrencyType.BrainCoin) ?
+                    skins[index].brainCoinPrice : skins[index].coinCoinPrice;
+
+                if (playerCurrency >= price)
+                {
+                    if (skins[index].priceType == SkinData.CurrencyType.BrainCoin)
+                        BrainCurrency.Instance.SpendBrainCurrency(price);
+                    else
+                        NeuroCurrency.Instance.SpendCoinCurrency((int)price);
+
+                    skins[index].isPurchased = true;
+                    PlayerPrefs.SetInt($"Skin_{index}", 1);
+                    ActivateSkin(index);
+                }
             }
-            GenerateSkinButtons(); // Обновляем кнопки после покупки
+            GenerateSkinButtons();
         }
     }
 
@@ -63,11 +72,9 @@ public class SkinManager : MonoBehaviour
             Material playerMaterial = playerRenderer.material;
             playerMaterial.mainTexture = skins[index].textureSprite.texture;
             PlayerPrefs.SetInt("SelectedSkin", index);
-            GenerateSkinButtons(); // Пересоздаем кнопки, обновляя галочки
+            GenerateSkinButtons();
         }
     }
-
-
 
     private void LoadSkinStates()
     {
@@ -76,11 +83,9 @@ public class SkinManager : MonoBehaviour
             skins[i].isPurchased = (i == 0) || PlayerPrefs.GetInt($"Skin_{i}", 0) == 1;
         }
 
-        // Если нет сохраненного выбранного скина, выбираем первый
         if (!PlayerPrefs.HasKey("SelectedSkin"))
         {
             PlayerPrefs.SetInt("SelectedSkin", 0);
         }
     }
-
 }

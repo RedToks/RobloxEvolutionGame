@@ -28,7 +28,8 @@ namespace CoppraGames
         private void Awake()
         {
             instance = this;
-            HideRewardClaiming();           
+            HideRewardClaiming();     
+            
         }
 
         public void Start()
@@ -89,44 +90,34 @@ namespace CoppraGames
             if(quest != null)
             {
                 QuestManager.instance.ClaimQuest(quest.index, true);
+
+                quest.rewards.CalculateReward();
+                GiveReward(quest.rewards);
+
                 StartCoroutine(_ShowRewardClaiming(quest.rewards));
                 this.Refresh();
             }
             
         }
 
-        public void GoQuest(QuestItem questItem)
-        {
-            QuestManager.Quest quest = questItem.GetQuest();
-            if (quest != null)
-            {
 
-                switch (quest.goal)
-                {
-                    case QuestManager.QuestGoals.COLLECT_DAILY_REWARDS:
-                        Debug.Log("COLLECT_DAILY_REWARDS");
-                        Debug.Log("You can add your own logic here!");
-                        //LOGIC
-                        break;
+        private void GiveReward(QuestManager.RewardItem reward)
+{
+    if (reward == null) return;
 
-                    case QuestManager.QuestGoals.COMPLETE_MISSION:
-                        Debug.Log("COMPLETE_MISSION");
-                        Debug.Log("You can add your own logic here!");
-                        //LOGIC
-                        break;
-                    case QuestManager.QuestGoals.DESTROY_ENEMY:
-                        Debug.Log("DESTROY_ENEMY");
-                        Debug.Log("You can add your own logic here!");
-                        //LOGIC
-                        break;
-                    case QuestManager.QuestGoals.UPGRADE_HERO:
-                        Debug.Log("UPGRADE_HERO");
-                        Debug.Log("You can add your own logic here!");
-                        //LOGIC
-                        break;
-                }
-            }
-        }
+    switch (reward.type)
+    {
+        case QuestManager.RewardItem.Type.BrainCoins:
+            BrainCurrency.Instance.AddBrainCurrency(reward.count);
+            break;
+        case QuestManager.RewardItem.Type.CoinCoins:
+            NeuroCurrency.Instance.AddCoinCurrency(reward.count);
+            break;
+        case QuestManager.RewardItem.Type.Pets:
+            Debug.Log("Добавляем питомца!"); // Здесь можешь добавить логику получения питомца
+            break;
+    }
+}
 
         private IEnumerator _ShowRewardClaiming(QuestManager.RewardItem reward)
         {
@@ -137,7 +128,7 @@ namespace CoppraGames
                 if (reward != null)
                 {
                     RewardClaimingIcon.sprite = reward.icon;
-                    RewardClaimingCount.text = "x" + reward.count.ToString();
+                    RewardClaimingCount.text = "x" + CurrencyFormatter.FormatCurrency(reward.count);
                 }
 
                 RewardClaimingPanel.GetComponent<Animator>().Play("clip");

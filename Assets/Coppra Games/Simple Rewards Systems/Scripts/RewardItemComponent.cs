@@ -14,7 +14,7 @@ namespace CoppraGames
         public void SetData(SpinWheelController.RewardItem reward)
         {
             this.Icon.sprite = reward.icon;
-            this.CountText.text = reward.count.ToString();
+            this.CountText.text = CurrencyFormatter.FormatCurrency(reward.count);
         }
 
     }

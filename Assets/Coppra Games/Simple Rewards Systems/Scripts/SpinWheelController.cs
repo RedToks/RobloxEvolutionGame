@@ -10,11 +10,24 @@ namespace CoppraGames
 {
     public class SpinWheelController : MonoBehaviour
     {
+        public enum RewardType
+        {
+            Pet,
+            BrainCoins,
+            CoinCoins
+        }
+
         [System.Serializable]
         public class RewardItem
         {
+            public RewardType type;
             public Sprite icon;
             public int count;
+
+            public GameObject petPrefab;
+            public string petName;
+            public float petStrength;
+            public Sprite petIcon;
         }
 
         public RewardItem[] rewards;
@@ -30,6 +43,7 @@ namespace CoppraGames
         public TextMeshProUGUI ResultCount;
         public Button SpinButton; // Кнопка для кручения
         public TextMeshProUGUI SpinCooldownText; // Текстовый UI для таймера
+        public NotificationIcon notificationIcon;
 
         private bool _isStarted;
         private float _startAngle;
@@ -62,13 +76,12 @@ namespace CoppraGames
             if (_isStarted || !_canSpin)
                 return;
 
-            SpinWheelArrowCollider.gameObject.SetActive(true);
-            SpinWheelArrowCollider.enabled = true;
-
             _isStarted = true;
             _startAngle = Wheel.localEulerAngles.z;
             int totalSlots = rewards.Length;
             _randomRewardIndex = Random.Range(0, totalSlots);
+
+            Debug.Log($"Выпал индекс награды: {_randomRewardIndex} - {rewards[_randomRewardIndex].type}");
 
             int rotationCount = Random.Range(10, 15);
             _endAngle = -(rotationCount * 360 + _randomRewardIndex * 360 / totalSlots);
@@ -79,7 +92,6 @@ namespace CoppraGames
             PlayerPrefs.SetString(LAST_SPIN_TIME_KEY, DateTime.UtcNow.ToString());
             PlayerPrefs.Save();
 
-            // Запускаем таймер на заданное в инспекторе время
             _canSpin = false;
             _timeRemaining = SpinCooldown;
             UpdateSpinButtonState();
@@ -121,8 +133,32 @@ namespace CoppraGames
         void SettleWheel()
         {
             SpinWheelArrowCollider.enabled = false;
-            ShowResult(_randomRewardIndex);
+
+            int actualRewardIndex = GetActualRewardIndex();
+
+            Debug.Log($"Фактический индекс награды: {actualRewardIndex} - {rewards[actualRewardIndex].type}");
+            Debug.Log($"Запланированный индекс награды: {_randomRewardIndex} - {rewards[_randomRewardIndex].type}");
+
+            if (_randomRewardIndex != actualRewardIndex)
+            {
+                Debug.LogWarning($"Несовпадение индексов! Ожидалось {_randomRewardIndex}, но фактически выпало {actualRewardIndex}");
+            }
+
+            ShowResult(actualRewardIndex);
         }
+
+        int GetActualRewardIndex()
+{
+    float currentAngle = Wheel.localEulerAngles.z;
+    int totalSlots = rewards.Length;
+
+    if (currentAngle < 0) currentAngle += 360; // Приводим угол к диапазону 0-360
+
+    float slotSize = 360f / totalSlots;
+    int index = Mathf.RoundToInt(currentAngle / slotSize) % totalSlots;
+
+    return index;
+}
 
         public void ApplyValues()
         {
@@ -139,6 +175,7 @@ namespace CoppraGames
 
         public void ShowResult(int resultIndex)
         {
+            GiveReward(resultIndex);
             StartCoroutine(_ShowResult(resultIndex));
         }
 
@@ -147,12 +184,12 @@ namespace CoppraGames
             if (ResultPanel)
             {
                 ResultPanel.SetActive(true);
-                int actualRewardIndex = rewards.Length - resultIndex; // because wheel rounds in clockwise
+                int actualRewardIndex = resultIndex;
 
                 if (rewards.Length > actualRewardIndex)
                 {
                     ResultIcon.sprite = rewards[actualRewardIndex].icon;
-                    ResultCount.text = "x" + rewards[actualRewardIndex].count.ToString();
+                    ResultCount.text = "x" + CurrencyFormatter.FormatCurrency(rewards[actualRewardIndex].count);
                 }
 
                 ResultPanel.GetComponent<Animator>().Play("clip");
@@ -169,6 +206,41 @@ namespace CoppraGames
             }
         }
 
+        void GiveReward(int rewardIndex)
+        {
+            Debug.Log($"Выдаём награду: {rewardIndex} - {rewards[rewardIndex].type}");
+
+            RewardItem reward = rewards[rewardIndex];
+            switch (reward.type)
+            {
+                case RewardType.Pet:
+                    GivePet(reward);
+                    break;
+                case RewardType.BrainCoins:
+                    BrainCurrency.Instance.AddBrainCurrency(reward.count);
+                    Debug.Log($"Игрок получил {reward.count} BrainCoins!");
+                    break;
+                case RewardType.CoinCoins:
+                    NeuroCurrency.Instance.AddCoinCurrency(reward.count);
+                    Debug.Log($"Игрок получил {reward.count} CoinCoins!");
+                    break;
+            }
+        }
+
+        void GivePet(RewardItem reward)
+        {
+            if (reward.petPrefab != null)
+            {
+                // **Создаем питомца с характеристиками из награды**
+                Pet newPet = new Pet(reward.petName, reward.petIcon, reward.petPrefab, reward.petStrength, Pet.PetRarity.Special);
+
+                // **Добавляем питомца в панель питомцев**
+                FindObjectOfType<PetPanelUI>().AddPet(newPet);
+            }
+        }
+
+
+
         public void Close()
         {
             Main.instance.ShowSpinWheelWindow(false);
@@ -179,6 +251,10 @@ namespace CoppraGames
             if (SpinButton != null)
             {
                 SpinButton.interactable = _canSpin;
+            }
+            if (notificationIcon != null)
+            {
+                notificationIcon.SetNotification(_canSpin);
             }
             UpdateCooldownText();
         }
@@ -218,6 +294,7 @@ namespace CoppraGames
                 {
                     _canSpin = true;
                     _timeRemaining = 0;
+                    UpdateSpinButtonState();
                 }
                 else
                 {
