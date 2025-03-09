@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using YG;
 
 public class TimeRewardButton : MonoBehaviour
 {
@@ -29,25 +30,26 @@ public class TimeRewardButton : MonoBehaviour
     public void UpdateState(float playTime)
     {
         float timeLeft = rewardData.requiredTime - playTime;
+        string lang = YandexGame.lang; // Определяем текущий язык
 
         if (rewardData.isClaimed)
         {
             claimButton.interactable = false;
-            timerText.text = "Получено!";
+            timerText.text = lang == "ru" ? "Получено!" : "Claimed!";
             return;
         }
 
         if (timeLeft <= 0)
         {
             claimButton.interactable = true;
-            timerText.text = "Доступно!";
+            timerText.text = lang == "ru" ? "Доступно!" : "Available!";
         }
         else
         {
             claimButton.interactable = false;
             int minutes = Mathf.FloorToInt(timeLeft / 60);
             int seconds = Mathf.FloorToInt(timeLeft % 60);
-            timerText.text = $"{minutes:D2}:{seconds:D2}";
+            timerText.text = lang == "ru" ? $"{minutes:D2}:{seconds:D2}" : $"{minutes:D2}:{seconds:D2}";
         }
     }
 }

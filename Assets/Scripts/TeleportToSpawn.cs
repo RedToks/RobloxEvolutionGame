@@ -1,49 +1,63 @@
-using UnityEngine;
+п»їusing UnityEngine;
+using KinematicCharacterController;
+using KinematicCharacterController.Examples;
 
-public class TeleportToSpawn : MonoBehaviour
+namespace KinematicCharacterController.Examples
 {
-    [Header("Настройки телепортации")]
-    [SerializeField] private Transform spawnPoint; // Точка спавна
-    [SerializeField] private float minYPosition = -10f; // Минимальная высота, после которой игрок телепортируется
-
-    private Transform playerTransform;
-
-    private void Start()
+    public class FallRespawn : MonoBehaviour
     {
-        // Ищем игрока по тегу "Player"
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
+        [Header("РќР°СЃС‚СЂРѕР№РєРё С‚РµР»РµРїРѕСЂС‚Р°С†РёРё")]
+        public Transform spawnPoint; // РўРѕС‡РєР° СЃРїР°РІРЅР°
+        public float minYPosition = -10f; // РњРёРЅРёРјР°Р»СЊРЅР°СЏ РІС‹СЃРѕС‚Р°, РїРѕСЃР»Рµ РєРѕС‚РѕСЂРѕР№ РёРіСЂРѕРє С‚РµР»РµРїРѕСЂС‚РёСЂСѓРµС‚СЃСЏ
+
+        private ExampleCharacterController player;
+        private KinematicCharacterMotor motor;
+
+        public bool isBeingTeleportedTo { get; set; }
+
+        private void Start()
         {
-            playerTransform = player.transform;
-        }
-        else
-        {
-            Debug.LogError("Игрок с тегом 'Player' не найден! Убедитесь, что у игрока установлен правильный тег.");
+            player = FindObjectOfType<ExampleCharacterController>();
+            if (player)
+            {
+                motor = player.Motor;
+            }
+
+            if (spawnPoint == null)
+            {
+                Debug.LogError("вќЊ РўРѕС‡РєР° СЃРїР°РІРЅР° РЅРµ РЅР°Р·РЅР°С‡РµРЅР°! РЈРєР°Р¶РёС‚Рµ РµС‘ РІ РёРЅСЃРїРµРєС‚РѕСЂРµ.");
+            }
         }
 
-        // Проверяем, назначена ли точка спавна
-        if (spawnPoint == null)
+        private void Update()
         {
-            Debug.LogError("Точка спавна не назначена! Назначьте её в инспекторе.");
+            if (!isBeingTeleportedTo && player != null && player.transform.position.y < minYPosition)
+            {
+                TeleportToSpawn();
+            }
         }
-    }
 
-    private void Update()
-    {
-        // Проверяем позицию игрока
-        if (playerTransform != null && playerTransform.position.y < minYPosition)
+        public void TeleportToSpawn()
         {
-            TeleportToSpawnPoint();
-        }
-    }
+            isBeingTeleportedTo = true;
 
-    public void TeleportToSpawnPoint()
-    {
-        if (spawnPoint != null)
-        {
-            playerTransform.position = spawnPoint.position;
-            playerTransform.rotation = spawnPoint.rotation; // Сохраняем ориентацию спавна
-            Debug.Log("Игрок телепортирован на спавн!");
+            if (motor != null)
+            {
+                motor.enabled = false; // Р’С‹РєР»СЋС‡Р°РµРј СѓРїСЂР°РІР»РµРЅРёРµ
+            }
+
+
+            player.Motor.SetPositionAndRotation(spawnPoint.position, spawnPoint.rotation);
+            Debug.Log("рџЏЃ РРіСЂРѕРє СѓРїР°Р» Рё Р±С‹Р» С‚РµР»РµРїРѕСЂС‚РёСЂРѕРІР°РЅ РЅР° СЃРїР°РІРЅ!");
+
+
+
+            if (motor != null)
+            {
+                motor.enabled = true; // Р’РєР»СЋС‡Р°РµРј СѓРїСЂР°РІР»РµРЅРёРµ РѕР±СЂР°С‚РЅРѕ
+            }
+
+            isBeingTeleportedTo = false;
         }
     }
 }

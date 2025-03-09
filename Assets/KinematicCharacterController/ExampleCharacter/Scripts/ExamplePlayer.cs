@@ -1,9 +1,9 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using KinematicCharacterController;
 using KinematicCharacterController.Examples;
-using UnityEngine.Rendering;
+using SimpleInputNamespace;
+using UnityEngine.UI;
 
 namespace KinematicCharacterController.Examples
 {
@@ -12,33 +12,50 @@ namespace KinematicCharacterController.Examples
         public ExampleCharacterController Character;
         public ExampleCharacterCamera CharacterCamera;
 
-        private const string MouseXInput = "Mouse X";
-        private const string MouseYInput = "Mouse Y";
-        private const string MouseScrollInput = "Mouse ScrollWheel";
-        private const string HorizontalInput = "Horizontal";
-        private const string VerticalInput = "Vertical";
+        [Header("Мобильное управление")]
+        public GameObject joystick;  // Джойстик для передвижения
+        public Touchpad touchpad;    // Тачпад для камеры
+        public CanvasGroup mobileUI; // CanvasGroup для мобильных элементов
+        public Button jumpButton;    // 🔹 Кнопка прыжка
+        public Button zoomInButton;  // 🔹 Кнопка приближения камеры
+        public Button zoomOutButton; // 🔹 Кнопка отдаления камеры
+
+        private bool isMobile;
+        private bool jumpPressed; // Флаг для прыжка
 
         private void Start()
         {
+            // Определяем платформу
+            isMobile = true; // 🔹 Здесь можно определить, мобильное ли устройство
 
-            // Tell camera to follow transform
+            // Настраиваем CanvasGroup для мобильного управления
+            if (mobileUI != null)
+            {
+                mobileUI.alpha = isMobile ? 1f : 0f;
+                mobileUI.blocksRaycasts = isMobile;
+            }
+
+            // Подключаем кнопки
+            if (isMobile)
+            {
+                jumpButton?.onClick.AddListener(OnJumpPressed);
+                zoomInButton?.onClick.AddListener(() => AdjustZoom(-1f));
+                zoomOutButton?.onClick.AddListener(() => AdjustZoom(1f));
+            }
+
+            // Камера следует за персонажем
             CharacterCamera.SetFollowTransform(Character.CameraFollowPoint);
-
-            // Ignore the character's collider(s) for camera obstruction checks
             CharacterCamera.IgnoredColliders.Clear();
             CharacterCamera.IgnoredColliders.AddRange(Character.GetComponentsInChildren<Collider>());
         }
 
         private void Update()
         {
-
-
             HandleCharacterInput();
         }
 
         private void LateUpdate()
         {
-            // Handle rotating the camera along with physics movers
             if (CharacterCamera.RotateWithPhysicsMover && Character.Motor.AttachedRigidbody != null)
             {
                 CharacterCamera.PlanarDirection = Character.Motor.AttachedRigidbody.GetComponent<PhysicsMover>().RotationDeltaFromInterpolation * CharacterCamera.PlanarDirection;
@@ -52,36 +69,60 @@ namespace KinematicCharacterController.Examples
         {
             Vector3 lookInputVector = Vector3.zero;
 
-            // Вращаем камеру только если зажата ПКМ
-            if (Input.GetMouseButton(1))
+            if (isMobile)
             {
-                float mouseLookAxisUp = Input.GetAxisRaw(MouseYInput);
-                float mouseLookAxisRight = Input.GetAxisRaw(MouseXInput);
-                lookInputVector = new Vector3(mouseLookAxisRight, mouseLookAxisUp, 0f);
+                lookInputVector = new Vector2(touchpad.Value.x, touchpad.Value.y);
+                if (touchpad.xAxis.value == 0f && touchpad.yAxis.value == 0f)
+                {
+                    lookInputVector = Vector3.zero;
+                }
+            }
+            else
+            {
+                if (SimpleInput.GetMouseButton(1))
+                {
+                    float mouseLookAxisUp = SimpleInput.GetAxisRaw("Mouse Y");
+                    float mouseLookAxisRight = SimpleInput.GetAxisRaw("Mouse X");
+                    lookInputVector = new Vector3(mouseLookAxisRight, mouseLookAxisUp, 0f);
+                }
             }
 
-            // Зум камеры (колёсико мыши)
-            float scrollInput = -Input.GetAxis(MouseScrollInput);
-
-            // Применяем изменения к камере
+            float scrollInput = isMobile ? 0f : -SimpleInput.GetAxis("Mouse ScrollWheel");
             CharacterCamera.UpdateWithInput(Time.deltaTime, scrollInput, lookInputVector);
         }
-
 
         private void HandleCharacterInput()
         {
             PlayerCharacterInputs characterInputs = new PlayerCharacterInputs();
 
-            // Build the CharacterInputs struct
-            characterInputs.MoveAxisForward = Input.GetAxisRaw(VerticalInput);
-            characterInputs.MoveAxisRight = Input.GetAxisRaw(HorizontalInput);
-            characterInputs.CameraRotation = CharacterCamera.Transform.rotation;
-            characterInputs.JumpDown = Input.GetKeyDown(KeyCode.Space);
-            characterInputs.CrouchDown = Input.GetKeyDown(KeyCode.C);
-            characterInputs.CrouchUp = Input.GetKeyUp(KeyCode.C);
+            if (isMobile)
+            {
+                characterInputs.MoveAxisForward = SimpleInput.GetAxis("Vertical");
+                characterInputs.MoveAxisRight = SimpleInput.GetAxis("Horizontal");
+                characterInputs.JumpDown = jumpPressed; // 🔹 Прыжок по кнопке
+                jumpPressed = false; // 🔹 Сбрасываем флаг после обработки
+            }
+            else
+            {
+                characterInputs.MoveAxisForward = SimpleInput.GetAxisRaw("Vertical");
+                characterInputs.MoveAxisRight = SimpleInput.GetAxisRaw("Horizontal");
+                characterInputs.JumpDown = SimpleInput.GetKeyDown(KeyCode.Space);
+                characterInputs.CrouchDown = SimpleInput.GetKeyDown(KeyCode.C);
+                characterInputs.CrouchUp = SimpleInput.GetKeyUp(KeyCode.C);
+            }
 
-            // Apply inputs to character
+            characterInputs.CameraRotation = CharacterCamera.Transform.rotation;
             Character.SetInputs(ref characterInputs);
+        }
+
+        private void OnJumpPressed()
+        {
+            jumpPressed = true;
+        }
+
+        private void AdjustZoom(float amount)
+        {
+            CharacterCamera.TargetDistance += amount;
         }
     }
 }

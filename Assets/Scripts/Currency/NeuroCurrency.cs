@@ -23,13 +23,19 @@ public class NeuroCurrency : MonoBehaviour
     public void AddCoinCurrency(int amount) => AddCoinCurrency((long)amount);
     public void SpendCoinCurrency(int amount) => SpendCoinCurrency((long)amount);
 
-    private void AddCoinCurrency(long amount)
+    public void AddCoinCurrency(long amount)
     {
+        // Проверяем, активирован ли x2 доход для NeuroCoins
+        if (BuyController.isDoubleNeuroEarningsActive)
+        {
+            amount *= 2; // Удваиваем доход
+        }
+
         coinCurrency += amount;
         UpdateUI();
     }
 
-    private void SpendCoinCurrency(long amount)
+    public void SpendCoinCurrency(long amount)
     {
         if (coinCurrency >= amount)
         {

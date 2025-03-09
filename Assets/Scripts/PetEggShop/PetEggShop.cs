@@ -23,7 +23,7 @@ public class PetEggShop : MonoBehaviour
 
     private void Start()
     {
-        costText.text = cost.ToString();
+        costText.text = CurrencyFormatter.FormatCurrency(cost);
         buyButton.onClick.AddListener(TryBuyPet);
         shopUI.SetActive(false);
         UpdateButtonState(); // Проверяем кнопку при старте

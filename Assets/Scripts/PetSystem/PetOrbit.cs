@@ -39,30 +39,36 @@ public class PetOrbitManager : MonoBehaviour
         int petCount = activePets.Count;
         if (petCount == 0) return;
 
-        // Угол между каждым питомцем
         float angleStep = 360f / petCount;
+        Vector3 playerForward = playerTransform.forward; // Направление игрока по умолчанию
+
+        // Если у игрока есть скорость, используем направление скорости
+        Rigidbody playerRb = playerTransform.GetComponent<Rigidbody>();
+        if (playerRb != null && playerRb.velocity.magnitude > 0.1f)
+        {
+            playerForward = playerRb.velocity.normalized;
+        }
 
         for (int i = 0; i < petCount; i++)
         {
             GameObject pet = activePets[i];
             if (pet == null) continue;
 
-            // Расчёт текущего угла питомца с учетом времени (для плавного вращения)
             float angle = i * angleStep + Time.time * rotationSpeed;
             angle %= 360f;
-
-            // Конвертируем угол в радианы
             float radians = angle * Mathf.Deg2Rad;
 
-            // Рассчитываем позицию питомца на окружности
+            // Рассчитываем позицию питомца относительно игрока
             Vector3 offset = new Vector3(Mathf.Cos(radians), 0, Mathf.Sin(radians)) * orbitRadius;
-            offset.y = orbitHeight; // Устанавливаем высоту орбиты
+            offset.y = orbitHeight;
             pet.transform.position = playerTransform.position + offset;
 
-            // Питомец всегда смотрит на игрока, но остаётся вертикальным
-            Vector3 lookDirection = playerTransform.position - pet.transform.position;
-            lookDirection.y = 0; // Убираем влияние вертикальной оси
-            pet.transform.rotation = Quaternion.LookRotation(lookDirection);
+            // Питомцы смотрят в сторону движения персонажа
+            if (playerForward.magnitude > 0.1f) // Проверяем, что игрок движется
+            {
+                pet.transform.rotation = Quaternion.LookRotation(playerForward);
+            }
         }
     }
+
 }

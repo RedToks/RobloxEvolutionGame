@@ -14,13 +14,14 @@ namespace CoppraGames
             CoinCoin,
             Pet
         }
+
         [System.Serializable]
         public class RewardData
         {
             public Sprite icon;
             public int count;
             public int day;
-            public RewardType rewardType; // 🔥 Добавляем тип награды
+            public RewardType rewardType;
         }
 
         public GameObject ResultPanel;
@@ -30,17 +31,18 @@ namespace CoppraGames
         public RewardData[] rewards;
         public DailyRewardItem[] rewardItemComponents;
         public TextMeshProUGUI timerText;
-        public NotificationIcon notificationIcon; // 🔹 Уведомление (восклицательный знак)
+        public TextMeshProUGUI timerText2;
+        public NotificationIcon notificationIcon;
 
         public GameObject specialPetPrefab;
 
         public static DailyRewardsWindow instance;
 
         private PetPanelUI petPanelUI;
-        private DateTime lastUpdateTime;
+        private DateTime nextClaimTime;
         private int currentDay;
-        private const int resetDay = 7; // День, после которого сбрасывается прогресс
-        private const int updateInterval = 10; // Интервал обновления в секундах
+        private const int resetDay = 7;
+        private const int rewardCooldownHours = 24;
 
         void Awake()
         {
@@ -51,13 +53,15 @@ namespace CoppraGames
         {
             petPanelUI = FindObjectOfType<PetPanelUI>();
             LoadData();
+            CheckForNextDay();
             UpdateRewards();
             StartCoroutine(UpdateTimerCoroutine());
         }
 
         private void LoadData()
         {
-            lastUpdateTime = DateTime.Parse(PlayerPrefs.GetString("last_update_time", DateTime.Now.ToString()));
+            string savedTime = PlayerPrefs.GetString("next_claim_time", "");
+            nextClaimTime = string.IsNullOrEmpty(savedTime) ? DateTime.UtcNow.AddHours(rewardCooldownHours) : DateTime.Parse(savedTime);
             currentDay = PlayerPrefs.GetInt("current_day", 1);
         }
 
@@ -72,12 +76,13 @@ namespace CoppraGames
 
         private void UpdateTimerUI()
         {
-            DateTime nextUpdateTime = lastUpdateTime.AddSeconds(updateInterval);
-            TimeSpan timeLeft = nextUpdateTime - DateTime.Now;
+            TimeSpan timeLeft = nextClaimTime - DateTime.UtcNow;
 
             if (timeLeft.TotalSeconds > 0)
             {
-                timerText.text = string.Format("{0:D2}:{1:D2}:{2:D2}", timeLeft.Minutes, timeLeft.Seconds, timeLeft.Milliseconds / 10);
+                string timeString = string.Format("{0:D2}:{1:D2}:{2:D2}", timeLeft.Hours, timeLeft.Minutes, timeLeft.Seconds);
+                timerText.text = timeString;
+                timerText2.text = timeString; // Обновляем второй таймер
             }
             else
             {
@@ -85,19 +90,39 @@ namespace CoppraGames
             }
         }
 
-        private void NextDay()
+        private void CheckForNextDay()
         {
-            lastUpdateTime = DateTime.Now;
-            currentDay++;
-            QuestManager.instance.ResetAllDailyQuests();
+            while (DateTime.UtcNow >= nextClaimTime)
+            {
+                currentDay++;
+                nextClaimTime = nextClaimTime.AddHours(rewardCooldownHours);
+            }
 
             if (currentDay > resetDay)
             {
-                currentDay = 1; // Сбросить на день 1
-                ResetAllRewards(); // Сброс всех наград
+                currentDay = 1;
+                ResetAllRewards();
             }
 
-            PlayerPrefs.SetString("last_update_time", lastUpdateTime.ToString());
+            PlayerPrefs.SetString("next_claim_time", nextClaimTime.ToString());
+            PlayerPrefs.SetInt("current_day", currentDay);
+            PlayerPrefs.Save();
+
+            UpdateRewards();
+        }
+
+        private void NextDay()
+        {
+            currentDay++;
+            nextClaimTime = DateTime.UtcNow.AddHours(rewardCooldownHours);
+
+            if (currentDay > resetDay)
+            {
+                currentDay = 1;
+                ResetAllRewards();
+            }
+
+            PlayerPrefs.SetString("next_claim_time", nextClaimTime.ToString());
             PlayerPrefs.SetInt("current_day", currentDay);
             PlayerPrefs.Save();
 
@@ -124,16 +149,13 @@ namespace CoppraGames
 
                 rewardItemComponents[i].SetData(rewards[i], isCurrentDay);
 
-                // 🔹 Проверяем, есть ли хотя бы одна незабранная награда
                 if (isCurrentDay && !isClaimed)
                 {
                     hasUnclaimedReward = true;
                 }
             }
 
-            // 🔹 Включаем/выключаем уведомление
             notificationIcon.SetNotification(hasUnclaimedReward);
-
             RefreshClaimButton();
         }
 
@@ -153,7 +175,7 @@ namespace CoppraGames
 
         private void ClaimDailyReward(int day)
         {
-            RewardData reward = rewards[day - 1]; // Получаем данные о награде
+            RewardData reward = rewards[day - 1];
 
             switch (reward.rewardType)
             {
@@ -166,7 +188,7 @@ namespace CoppraGames
                     break;
 
                 case RewardType.Pet:
-                    GivePlayerPet(reward); // Выдаем питомца
+                    GivePlayerPet(reward);
                     break;
             }
 

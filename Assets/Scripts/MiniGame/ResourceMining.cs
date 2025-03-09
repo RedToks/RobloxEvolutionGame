@@ -27,7 +27,7 @@ public class ResourceMining : MonoBehaviour
     public TextMeshProUGUI rewardText;
     public TextMeshProUGUI loseText;
 
-    public long requiredBrainCoins = 0;
+    [HideInInspector] public long requiredBrainCoins = 0;
 
     public TextMeshProUGUI countdownText3;
     public TextMeshProUGUI countdownText2;
@@ -54,29 +54,57 @@ public class ResourceMining : MonoBehaviour
     private bool isVictory;
     private Coroutine miningCoroutine;
 
+    [SerializeField]
+    private string requiredBrainCoinsString = "0"; // Показываем строку в инспекторе
+
+    public Button startMiningButton;
+    private static ResourceMining activeMiningInstance;
+
+    public AudioSource audioSource;
+    public AudioClip winSound;
+    public AudioClip loseSound;
+    public AudioClip pickaxeHitSound;
+
+
     private void Start()
     {
+        if (!long.TryParse(requiredBrainCoinsString, out requiredBrainCoins))
+        {
+            Debug.LogError($"Ошибка преобразования {requiredBrainCoinsString} в long.");
+            requiredBrainCoins = 0; // Значение по умолчанию, если парсинг не удался
+        }
+
+
+
+        startMiningButton.onClick.AddListener(() =>
+        {
+            if (activeMiningInstance == this) // Запускаем только если кнопка относится к текущему объекту
+            {
+                StartMining();
+            }
+        });
+
         loseText.gameObject.SetActive(false);
         originalPosition = miningRock.position;
         pickAxe.gameObject.SetActive(false);
 
         ResetMiningUI();
         interactPrompt.SetActive(false);
-
-        // Выключаем все таймеры при старте
         countdownText3.gameObject.SetActive(false);
         countdownText2.gameObject.SetActive(false);
         countdownText1.gameObject.SetActive(false);
-
         UpdateBrainCoinsUI();
     }
+
 
     private void OnTriggerStay(Collider other)
     {
         if (other.TryGetComponent(out ExampleCharacterController player) && !isMining)
         {
+            activeMiningInstance = this; // Сохраняем текущий объект добычи
             canStartMining = true;
-            interactPrompt.SetActive(true); // Показываем подсказку
+            interactPrompt.SetActive(true);
+            startMiningButton.gameObject.SetActive(true);
         }
     }
 
@@ -84,8 +112,13 @@ public class ResourceMining : MonoBehaviour
     {
         if (other.TryGetComponent(out ExampleCharacterController player))
         {
-            canStartMining = false;
-            interactPrompt.SetActive(false); // Прячем подсказку, если игрок ушел
+            if (activeMiningInstance == this) // Сбрасываем только если это был активный объект
+            {
+                activeMiningInstance = null;
+                canStartMining = false;
+                interactPrompt.SetActive(false);
+                startMiningButton.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -93,7 +126,7 @@ public class ResourceMining : MonoBehaviour
     {
         AdjustMiningSpeed();
 
-        if (canStartMining && Input.GetKeyDown(KeyCode.E) && !isMining)
+        if (canStartMining && !isMining && (Input.GetKeyDown(KeyCode.E)))
         {
             StartMining();
         }
@@ -103,6 +136,11 @@ public class ResourceMining : MonoBehaviour
             progressBar.value += increaseAmount;
             playerAnimator.SetTrigger("mining");
             ShakeRock();
+
+            if (pickaxeHitSound != null)
+            {
+                audioSource.PlayOneShot(pickaxeHitSound);
+            }
 
             hitCount++;
 
@@ -190,6 +228,7 @@ public class ResourceMining : MonoBehaviour
 
     private void StartMining()
     {
+        UpdateBrainCoinsUI();
         StartMiningProcess();
     }
 
@@ -260,11 +299,19 @@ public class ResourceMining : MonoBehaviour
         {
             ShowReward();
             PlayRockBreakEffect();
+            if (winSound != null)
+            {
+                audioSource.PlayOneShot(winSound);
+            }
         }
 
         if (!isVictory)
         {
             ShowLoseText();
+            if (loseSound != null)
+            {
+                audioSource.PlayOneShot(loseSound);
+            }
         }
 
         yield return new WaitForSeconds(3f);

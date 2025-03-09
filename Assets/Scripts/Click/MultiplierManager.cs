@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class MultiplierManager : MonoBehaviour
 {
@@ -7,6 +8,7 @@ public class MultiplierManager : MonoBehaviour
     public MultiplierData[] multipliers;
     public NotificationIcon notificationIcon;
     public GameObject clickPanel;
+    public Image bottomMultiplierIcon;
 
     private MultiplierButton activeMultiplierButton;
     private bool hasNewUnlockedMultiplier = false; // 🔹 Флаг нового множителя
@@ -15,6 +17,8 @@ public class MultiplierManager : MonoBehaviour
     {
         foreach (MultiplierData data in multipliers)
         {
+            data.ParseUnlockCost();
+
             GameObject newButton = Instantiate(multiplierButtonPrefab, buttonParent);
             MultiplierButton buttonScript = newButton.GetComponent<MultiplierButton>();
 
@@ -49,6 +53,8 @@ public class MultiplierManager : MonoBehaviour
 
         activeMultiplierButton = newButton;
         activeMultiplierButton.Activate();
+
+        bottomMultiplierIcon.sprite = newButton.icon.sprite;
 
         // 🔹 Сбрасываем уведомление при активации множителя
         hasNewUnlockedMultiplier = false;

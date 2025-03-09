@@ -4,6 +4,7 @@ using TMPro;
 using DG.Tweening;
 using System.Collections;
 using CoppraGames;
+using YG;
 
 public class BrainCoinClicker : MonoBehaviour
 {
@@ -16,6 +17,11 @@ public class BrainCoinClicker : MonoBehaviour
     public RectTransform brainCoinTarget; // Куда летит текст
     public float clickCooldown = 0.2f; // Ограничение по времени обычного клика
     public float autoClickCooldown = 0.5f; // Ограничение по времени автоклика
+    public Button autoClickButton; // Кнопка автокликера
+
+    [Header("Настройки цветов кнопки автокликера")]
+    public Color activeColor = Color.green;  // Цвет при включенном автокликере
+    public Color inactiveColor = Color.red;  // Цвет при выключенном автокликере
 
     private float lastClickTime = 0f; // Время последнего клика
     private bool isAutoClickerActive = false; // Флаг активации автокликера
@@ -28,16 +34,17 @@ public class BrainCoinClicker : MonoBehaviour
 
         ClickMultiplier.Instance.OnMultiplierChanged += UpdateBrainCoinText;
         UpdateBrainCoinText(ClickMultiplier.Instance.TotalMultiplier);
+        UpdateAutoClickButtonColor(); // Обновляем цвет кнопки при старте
     }
 
     private void OnDestroy()
     {
-        ClickMultiplier.Instance.OnMultiplierChanged -= UpdateBrainCoinText; // Отписка при удалении
+        ClickMultiplier.Instance.OnMultiplierChanged -= UpdateBrainCoinText;
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0) && !isAutoClickerActive) // Игрок не может кликать, если автокликер активен
+        if (Input.GetMouseButtonDown(0) && !isAutoClickerActive)
         {
             AttemptClick();
         }
@@ -48,19 +55,26 @@ public class BrainCoinClicker : MonoBehaviour
         if (brainCoinPerClick != null)
         {
             int totalCoins = Mathf.RoundToInt(baseBrainCoinsPerClick * ClickMultiplier.Instance.TotalMultiplier);
-            brainCoinPerClick.text = $"{totalCoins}";
+
+            // Получаем текущий язык
+            string lang = YandexGame.lang;
+
+            // Задаем текст в зависимости от языка
+            string text = lang == "ru" ? $"+{CurrencyFormatter.FormatCurrency(totalCoins)} / клик"
+                                       : $"+{CurrencyFormatter.FormatCurrency(totalCoins)} / click";
+
+            brainCoinPerClick.text = text;
         }
     }
 
     private void AttemptClick()
     {
-        // Проверяем, прошло ли достаточно времени с последнего клика
         if (Time.time - lastClickTime < clickCooldown)
         {
             return;
         }
 
-        lastClickTime = Time.time; // Обновляем время последнего клика
+        lastClickTime = Time.time;
         GiveBrainCoins();
         QuestManager.instance.OnAchieveQuestGoal(QuestManager.QuestGoals.CLICK_1000_TIMES);
     }
@@ -93,7 +107,7 @@ public class BrainCoinClicker : MonoBehaviour
         TextMeshProUGUI textComponent = floatingText.GetComponentInChildren<TextMeshProUGUI>();
         if (textComponent != null)
         {
-            textComponent.text = $"+{CurrencyFormatter.FormatCurrency(coins)}";
+            textComponent.text = $"<sprite name=\"Brain\">+{CurrencyFormatter.FormatCurrency(coins)}";
         }
 
         DOVirtual.DelayedCall(0.5f, () =>
@@ -120,6 +134,8 @@ public class BrainCoinClicker : MonoBehaviour
         {
             StartAutoClicker();
         }
+
+        UpdateAutoClickButtonColor(); // Меняем цвет кнопки при включении/выключении
     }
 
     // ✅ Запуск автокликера
@@ -149,7 +165,15 @@ public class BrainCoinClicker : MonoBehaviour
         while (true)
         {
             GiveBrainCoins();
-            yield return new WaitForSeconds(autoClickCooldown); // Автоклик с индивидуальной задержкой
+            yield return new WaitForSeconds(autoClickCooldown);
+        }
+    }
+
+    private void UpdateAutoClickButtonColor()
+    {
+        if (autoClickButton != null)
+        {
+            autoClickButton.image.color = isAutoClickerActive ? activeColor : inactiveColor;
         }
     }
 }

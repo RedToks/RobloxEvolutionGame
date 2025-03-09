@@ -30,6 +30,12 @@ public class BrainCurrency : MonoBehaviour
 
     public void AddBrainCurrency(long amount)
     {
+        // Проверяем, активирован ли x2 доход
+        if (BuyController.isDoubleEarningsActive)
+        {
+            amount *= 2; // Удваиваем доход
+        }
+
         brainCurrency += amount;
 
         // Обновляем общий заработок BrainCoins
@@ -42,7 +48,6 @@ public class BrainCurrency : MonoBehaviour
         UpdateUI();
         OnCurrencyChanged?.Invoke();
     }
-
 
     public void SpendBrainCurrency(long amount)
     {
