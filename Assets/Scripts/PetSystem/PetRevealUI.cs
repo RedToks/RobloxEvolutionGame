@@ -4,6 +4,7 @@ using TMPro;
 using DG.Tweening;
 using System.Collections;
 using static Pet;
+using YG;
 
 public class PetRevealUI : MonoBehaviour
 {
@@ -41,11 +42,10 @@ public class PetRevealUI : MonoBehaviour
     public void ShowPet(Sprite petSprite, PetRarity rarity)
     {
         petImage.sprite = petSprite;
-        rarityText.text = rarity.ToString();
+        rarityText.text = GetLocalizedRarity(rarity);
         rarityText.color = GetRarityColor(rarity);
-        titleText.color = GetRarityColor(rarity); // Подстраиваем цвет названия
+        titleText.color = GetRarityColor(rarity);
 
-        // Устанавливаем цвет свечения
         if (lightIcon != null)
         {
             lightIcon.color = GetRarityColor(rarity);
@@ -62,6 +62,25 @@ public class PetRevealUI : MonoBehaviour
         canvasGroup.DOFade(1f, 0.5f);
         panelTransform.DOScale(1.2f, 0.5f).SetEase(Ease.OutBack)
             .OnComplete(() => StartCoroutine(HideAfterDelay()));
+    }
+
+    private string GetLocalizedRarity(PetRarity rarity)
+    {
+        string lang = YG2.lang; // Получаем текущий язык игры
+
+        switch (rarity)
+        {
+            case PetRarity.Common:
+                return lang == "ru" ? "Обычный" : "Common";
+            case PetRarity.Rare:
+                return lang == "ru" ? "Редкий" : "Rare";
+            case PetRarity.Mythic:
+                return lang == "ru" ? "Мифический" : "Mythic";
+            case PetRarity.Special:
+                return lang == "ru" ? "Особый" : "Special";
+            default:
+                return lang == "ru" ? "Неизвестно" : "Unknown";
+        }
     }
 
     private IEnumerator HideAfterDelay()

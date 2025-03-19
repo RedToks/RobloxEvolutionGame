@@ -1,36 +1,45 @@
-using UnityEngine;
+п»їusing UnityEngine;
 using TMPro;
 using System.Collections;
 using System;
-using KinematicCharacterController.Examples;
+using YG;
 
 public class TriggerBrainBonus : MonoBehaviour
 {
-    [Header("Настройки таймера")]
-    public TextMeshPro timerText; // Текст для отображения таймера
-    public float cooldownTime = 600f; // 10 минут (600 секунд)
+    [Header("РќР°СЃС‚СЂРѕР№РєРё С‚Р°Р№РјРµСЂР°")]
+    public TextMeshPro timerText;
+    public float cooldownTime = 600f;
 
-    [Header("Настройки бонуса")]
-    [Range(0f, 1f)] public float bonusMultiplier = 0.1f; // Множитель бонуса (по умолчанию 10%)
+    [Header("РќР°СЃС‚СЂРѕР№РєРё Р±РѕРЅСѓСЃР°")]
+    [Range(0f, 1f)] public float bonusMultiplier = 0.1f;
 
-    [Header("Цвета таймера")]
-    public Color activeColor = Color.red;  // Цвет во время таймера
-    public Color readyColor = Color.green; // Цвет, когда бонус доступен
+    [Header("Р¦РІРµС‚Р° С‚Р°Р№РјРµСЂР°")]
+    public Color activeColor = Color.red;
+    public Color readyColor = Color.green;
 
-    private bool canReceiveBonus = true;
+    private bool canReceiveBonus = false;
     private float timerRemaining = 0f;
-    private const string LastExitTimeKey = "LastExitTime";
-    private const string TimerRemainingKey = "TimerRemaining";
+    private bool isSavingAllowed = false; // рџ”№ Р¤Р»Р°Рі СЂР°Р·СЂРµС€РµРЅРёСЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ
 
     private void Start()
     {
         LoadTimerState();
-        StartCoroutine(StartCooldown());
+
+        if (timerRemaining > 0)
+        {
+            StartCoroutine(StartCooldown());
+        }
+        else
+        {
+            SetBonusReady();
+        }
+
+        StartCoroutine(AutoSaveRoutine()); // рџ”№ Р—Р°РїСѓСЃРє Р°РІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёСЏ СЂР°Р· РІ 10 СЃРµРєСѓРЅРґ
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent(out ExampleCharacterController player) && canReceiveBonus)
+        if (other.CompareTag("Player") && canReceiveBonus)
         {
             GiveBrainBonus();
             StartCoroutine(StartCooldown());
@@ -39,11 +48,13 @@ public class TriggerBrainBonus : MonoBehaviour
 
     private void GiveBrainBonus()
     {
-        long bonusAmount = Mathf.RoundToInt(BrainCurrency.Instance.brainCurrency * bonusMultiplier);
+        int bonusAmount = Mathf.RoundToInt(BrainCurrency.Instance.brainCurrency * bonusMultiplier);
         BrainCurrency.Instance.AddBrainCurrency(bonusAmount);
+
         canReceiveBonus = false;
         timerRemaining = cooldownTime;
-        SaveTimerState(); // Сохранение сразу после получения бонуса
+        RequestSave();
+        StartCoroutine(StartCooldown());
     }
 
     private IEnumerator StartCooldown()
@@ -53,12 +64,10 @@ public class TriggerBrainBonus : MonoBehaviour
             UpdateTimerUI();
             yield return new WaitForSeconds(1f);
             timerRemaining--;
-            SaveTimerState(); // Сохранение каждую секунду
+            RequestSave();
         }
 
-        canReceiveBonus = true;
-        timerText.text = "0:00";
-        timerText.color = readyColor; // Цвет когда бонус доступен
+        SetBonusReady();
     }
 
     private void UpdateTimerUI()
@@ -66,35 +75,60 @@ public class TriggerBrainBonus : MonoBehaviour
         int minutes = Mathf.FloorToInt(timerRemaining / 60);
         int seconds = Mathf.FloorToInt(timerRemaining % 60);
         timerText.text = $"{minutes:D2}:{seconds:D2}";
-        timerText.color = activeColor; // Цвет во время таймера
+        timerText.color = activeColor;
+    }
+
+    private void SetBonusReady()
+    {
+        canReceiveBonus = true;
+        timerText.color = readyColor;
     }
 
     private void SaveTimerState()
     {
-        PlayerPrefs.SetFloat(TimerRemainingKey, timerRemaining);
-        PlayerPrefs.SetString(LastExitTimeKey, DateTime.UtcNow.ToString());
-        PlayerPrefs.Save();
+        YG2.saves.bonusTimerRemaining = timerRemaining;
+        YG2.saves.lastExitTime = DateTime.UtcNow.ToString();
+
+        isSavingAllowed = false;
     }
 
     private void LoadTimerState()
     {
-        if (PlayerPrefs.HasKey(TimerRemainingKey) && PlayerPrefs.HasKey(LastExitTimeKey))
+        if (!string.IsNullOrEmpty(YG2.saves.lastExitTime))
         {
-            timerRemaining = PlayerPrefs.GetFloat(TimerRemainingKey, 0f);
-            string lastExitTimeStr = PlayerPrefs.GetString(LastExitTimeKey, "");
+            timerRemaining = YG2.saves.bonusTimerRemaining;
+            DateTime lastExitTime = DateTime.Parse(YG2.saves.lastExitTime);
+            double elapsedSeconds = (DateTime.UtcNow - lastExitTime).TotalSeconds;
 
-            if (!string.IsNullOrEmpty(lastExitTimeStr))
+            timerRemaining -= (float)elapsedSeconds;
+            if (timerRemaining <= 0)
             {
-                DateTime lastExitTime = DateTime.Parse(lastExitTimeStr);
-                double elapsedSeconds = (DateTime.UtcNow - lastExitTime).TotalSeconds;
-
-                timerRemaining -= (float)elapsedSeconds;
-                if (timerRemaining <= 0)
-                {
-                    timerRemaining = 0;
-                    canReceiveBonus = true;
-                }
+                timerRemaining = 0;
+                SetBonusReady();
             }
         }
+        else
+        {
+            timerRemaining = cooldownTime;
+        }
+    }
+
+    // рџ”№ РљРѕСЂСѓС‚РёРЅР° Р°РІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёСЏ СЂР°Р· РІ 10 СЃРµРєСѓРЅРґ
+    private IEnumerator AutoSaveRoutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(10f);
+            if (isSavingAllowed)
+            {
+                SaveTimerState();
+            }
+        }
+    }
+
+    // рџ”№ Р—Р°РїСЂРѕСЃ РЅР° СЃРѕС…СЂР°РЅРµРЅРёРµ
+    private void RequestSave()
+    {
+        isSavingAllowed = true;
     }
 }

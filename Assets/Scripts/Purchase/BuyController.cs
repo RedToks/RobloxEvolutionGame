@@ -1,69 +1,136 @@
 ﻿using UnityEngine;
 using YG;
-using TMPro; // Для работы с текстом
+using YG.Utils.Pay;
 
 public class BuyController : MonoBehaviour
 {
     public static bool isDoubleEarningsActive = false; // Флаг x2 BrainCoins
     public static bool isDoubleNeuroEarningsActive = false; // Флаг x2 NeuroCoins
 
-    [SerializeField] private GameObject adsGameObject; // 🔹 Объект, который нужно выключить при покупке
+    [SerializeField] private PetPanelUI petPanelUI; // Панель питомцев
+    [SerializeField] private Pet specialPetPrefab; // Префаб специального питомца
+
+    [SerializeField] private GameObject objectToDisable1;
+    [SerializeField] private GameObject objectToDisable2;
+    [SerializeField] private GameObject objectToDisableForDoubleEarnings;
+    [SerializeField] private GameObject objectToDisableForDoubleNeuroEarnings;
 
     private void OnEnable()
     {
-        YandexGame.PurchaseSuccessEvent += AddCurrency;
+        YG2.onPurchaseSuccess += AddCurrency;
     }
 
     private void OnDisable()
     {
-        YandexGame.PurchaseSuccessEvent -= AddCurrency;
-    }
-
-    private void AddCurrency(string key)
-    {
-        if (BrainCurrency.Instance == null || NeuroCurrency.Instance == null)
-        {
-            Debug.LogError("BrainCurrency or NeuroCurrency instance is not found!");
-            return;
-        }
-
-        switch (key)
-        {
-            case "1":
-                if (adsGameObject != null)
-                {
-                    adsGameObject.SetActive(false); // 🔹 Выключаем объект
-                    PlayerPrefs.SetInt("AdsDisabledObject", 1);
-                    PlayerPrefs.Save();
-                    Debug.Log("Объект рекламы отключен!");
-                }
-                break;
-            case "2":
-                isDoubleEarningsActive = true; // Включаем x2 BrainCoins
-                PlayerPrefs.SetInt("DoubleEarnings", 1);
-                PlayerPrefs.Save();
-                break;
-            case "3":
-                isDoubleNeuroEarningsActive = true; // Включаем x2 NeuroCoins
-                PlayerPrefs.SetInt("DoubleNeuroEarnings", 1);
-                PlayerPrefs.Save();
-                break;
-            default:
-                Debug.LogWarning("Unknown purchase key: " + key);
-                break;
-        }
+        YG2.onPurchaseSuccess -= AddCurrency;
     }
 
     private void Start()
     {
-        isDoubleEarningsActive = PlayerPrefs.GetInt("DoubleEarnings", 0) == 1;
-        isDoubleNeuroEarningsActive = PlayerPrefs.GetInt("DoubleNeuroEarnings", 0) == 1;
+        // Загружаем сохраненные состояния
+        isDoubleEarningsActive = YG2.saves.isDoubleEarningsActive;
+        isDoubleNeuroEarningsActive = YG2.saves.isDoubleNeuroEarningsActive;
 
-        // 🔹 Проверяем, был ли объект уже отключен
-        if (PlayerPrefs.GetInt("AdsDisabledObject", 0) == 1 && adsGameObject != null)
+        if (YG2.saves.isObjectsDisabled)
         {
-            adsGameObject.SetActive(false);
-            Debug.Log("Объект рекламы восстановлен в отключенном состоянии.");
+            DisableObjects(objectToDisable1, objectToDisable2);
+        }
+        if (YG2.saves.isDoubleEarningsDisabled)
+        {
+            DisableObjects(objectToDisableForDoubleEarnings);
+        }
+        if (YG2.saves.isDoubleNeuroEarningsDisabled)
+        {
+            DisableObjects(objectToDisableForDoubleNeuroEarnings);
+        }
+    }
+
+    private void AddCurrency(string key)
+    {
+        switch (key)
+        {
+            case "1":
+                YG2.saves.isObjectsDisabled = true;
+                DisableObjects(objectToDisable1, objectToDisable2);
+                Debug.Log("Объекты для кейса '1' отключены!");
+                break;
+
+            case "2":
+                isDoubleEarningsActive = true;
+                YG2.saves.isDoubleEarningsActive = true;
+                YG2.saves.isDoubleEarningsDisabled = true;
+                DisableObjects(objectToDisableForDoubleEarnings);
+                ClickMultiplier.Instance.SetOtherMultiplier(2f);
+                Debug.Log("x2 BrainCoins активированы!");
+                break;
+
+            case "3":
+                isDoubleNeuroEarningsActive = true;
+                YG2.saves.isDoubleNeuroEarningsActive = true;
+                YG2.saves.isDoubleNeuroEarningsDisabled = true;
+                DisableObjects(objectToDisableForDoubleNeuroEarnings);
+                Debug.Log("x2 NeuroCoins активированы!");
+                break;
+
+            case "4":
+                if (petPanelUI != null && specialPetPrefab != null)
+                {
+                    Pet specialPet = new Pet(specialPetPrefab.Icon, specialPetPrefab.Prefab, 1500f, Pet.PetRarity.Special);
+                    petPanelUI.AddPet(specialPet);
+                    Debug.Log("Добавлен специальный питомец!");
+                }
+                else
+                {
+                    Debug.LogError("Ошибка: petPanelUI или specialPetPrefab не назначены!");
+                }
+                break;
+
+            case "5":
+                BrainCurrency.Instance.AddBrainCurrency(100000);
+                Debug.Log("Начислено 100K BrainCoins!");
+                break;
+
+            case "6":
+                BrainCurrency.Instance.AddBrainCurrency(1000000);
+                Debug.Log("Начислено 1M BrainCoins!");
+                break;
+
+            case "7":
+                BrainCurrency.Instance.AddBrainCurrency(1000000000);
+                Debug.Log("Начислено 1B BrainCoins!");
+                Debug.Log($"[SaveCurrency] Перед сохранением: brainCurrency = {BrainCurrency.Instance.brainCurrency}");
+                break;
+
+            case "8":
+                NeuroCurrency.Instance.AddCoinCurrency(10000);
+                Debug.Log("Начислено 10K NeuroCoins!");
+                break;
+
+            case "9":
+                NeuroCurrency.Instance.AddCoinCurrency(100000);
+                Debug.Log("Начислено 100K NeuroCoins!");
+                break;
+
+            case "10":
+                NeuroCurrency.Instance.AddCoinCurrency(1000000);
+                Debug.Log("Начислено 1M NeuroCoins!");
+                break;
+
+            default:
+                Debug.LogWarning("Неизвестный ключ покупки: " + key);
+                break;
+        }
+        YG2.SaveProgress();
+    }
+
+    private void DisableObjects(params GameObject[] objects)
+    {
+        foreach (var obj in objects)
+        {
+            if (obj != null)
+            {
+                obj.SetActive(false);
+            }
         }
     }
 }

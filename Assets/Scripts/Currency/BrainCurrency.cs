@@ -1,50 +1,55 @@
-using UnityEngine;
+п»їusing System;
+using System.Collections;
 using TMPro;
+using UnityEngine;
+using YG;
 
 public class BrainCurrency : MonoBehaviour
 {
     public static BrainCurrency Instance;
     public long brainCurrency { get; private set; }
     public TextMeshProUGUI brainCurrencyText;
-
     public event System.Action OnCurrencyChanged;
 
-    private const string BrainCurrencyKey = "BrainCurrency"; // Ключ для сохранения
+    private bool needsSave = false;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
-            LoadCurrency(); // Загружаем сохранённые данные
         }
         else
         {
             Destroy(gameObject);
+            return;
         }
     }
 
-    public void AddBrainCurrency(int amount) => AddBrainCurrency((long)amount);
-    public void SpendBrainCurrency(int amount) => SpendBrainCurrency((long)amount);
+    private void Start()
+    {
+        brainCurrency = YG2.saves.brainCurrency;
+        StartCoroutine(AutoSaveCoroutine());
+    }
+
+    private IEnumerator AutoSaveCoroutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(10f);
+            SaveCurrency();
+        }
+    }
 
     public void AddBrainCurrency(long amount)
     {
-        // Проверяем, активирован ли x2 доход
         if (BuyController.isDoubleEarningsActive)
         {
-            amount *= 2; // Удваиваем доход
+            amount *= 2;
         }
 
         brainCurrency += amount;
-
-        // Обновляем общий заработок BrainCoins
-        long totalEarnedBrainCoins = PlayerPrefs.GetInt("total_brain_coins", 0);
-        totalEarnedBrainCoins += amount;
-        PlayerPrefs.SetInt("total_brain_coins", (int)totalEarnedBrainCoins);
-        PlayerPrefs.Save();
-
-        SaveCurrency();
+        needsSave = true;
         UpdateUI();
         OnCurrencyChanged?.Invoke();
     }
@@ -54,7 +59,7 @@ public class BrainCurrency : MonoBehaviour
         if (brainCurrency >= amount)
         {
             brainCurrency -= amount;
-            SaveCurrency(); // Сохраняем после изменения
+            needsSave = true;
             UpdateUI();
             OnCurrencyChanged?.Invoke();
         }
@@ -74,19 +79,8 @@ public class BrainCurrency : MonoBehaviour
 
     private void SaveCurrency()
     {
-        PlayerPrefs.SetString(BrainCurrencyKey, brainCurrency.ToString());
-        PlayerPrefs.Save();
-    }
-
-    private void LoadCurrency()
-    {
-        if (PlayerPrefs.HasKey(BrainCurrencyKey))
-        {
-            if (long.TryParse(PlayerPrefs.GetString(BrainCurrencyKey), out long savedCurrency))
-            {
-                brainCurrency = savedCurrency;
-            }
-        }
-        UpdateUI();
+        Debug.Log($"[SaveCurrency] РџРµСЂРµРґ СЃРѕС…СЂР°РЅРµРЅРёРµРј: brainCurrency = {brainCurrency}");
+        YG2.saves.brainCurrency = brainCurrency;
+        YG2.SaveProgress();
     }
 }

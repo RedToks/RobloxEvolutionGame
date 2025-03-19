@@ -1,38 +1,78 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using TMPro;
+using YG;
+using System.Collections;
 
 public class NeuroCurrency : MonoBehaviour
 {
     public static NeuroCurrency Instance;
     public long coinCurrency { get; private set; }
     public TextMeshProUGUI coinCurrencyText;
+    public event System.Action OnCurrencyChanged;
+
+    private bool needsSave = false;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
             Destroy(gameObject);
+            return;
         }
     }
 
-    public void AddCoinCurrency(int amount) => AddCoinCurrency((long)amount);
-    public void SpendCoinCurrency(int amount) => SpendCoinCurrency((long)amount);
+    private void Start()
+    {
+        StartCoroutine(AutoSaveCoroutine());
+    }
+
+    private void OnEnable()
+    {
+        YG2.onGetSDKData += OnDataLoaded;
+    }
+
+    private void OnDisable()
+    {
+        YG2.onGetSDKData -= OnDataLoaded;
+    }
+
+    private void OnDataLoaded()
+    {
+        Debug.Log($"[OnDataLoaded] –î–∞–Ω–Ω—ã–µ –∑–∞–≥—Ä—É–∂–µ–Ω—ã. coinCurrency –≤ saves: {YG2.saves.coinCurrency}");
+        LoadCurrency();
+    }
+
+    private void LoadCurrency()
+    {
+        coinCurrency = YG2.saves.coinCurrency;
+        Debug.Log($"[LoadCurrency] –í–∞–ª—é—Ç–∞ –∑–∞–≥—Ä—É–∂–µ–Ω–∞: {coinCurrency}");
+        UpdateUI();
+    }
+
+    private IEnumerator AutoSaveCoroutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(10f);
+            SaveCurrency();
+        }
+    }
 
     public void AddCoinCurrency(long amount)
     {
-        // œÓ‚ÂˇÂÏ, ‡ÍÚË‚ËÓ‚‡Ì ÎË x2 ‰ÓıÓ‰ ‰Îˇ NeuroCoins
         if (BuyController.isDoubleNeuroEarningsActive)
         {
-            amount *= 2; // ”‰‚‡Ë‚‡ÂÏ ‰ÓıÓ‰
+            amount *= 2;
         }
 
         coinCurrency += amount;
+        needsSave = true;
         UpdateUI();
+        OnCurrencyChanged?.Invoke();
     }
 
     public void SpendCoinCurrency(long amount)
@@ -40,7 +80,9 @@ public class NeuroCurrency : MonoBehaviour
         if (coinCurrency >= amount)
         {
             coinCurrency -= amount;
+            needsSave = true;
             UpdateUI();
+            OnCurrencyChanged?.Invoke();
         }
         else
         {
@@ -54,5 +96,11 @@ public class NeuroCurrency : MonoBehaviour
         {
             coinCurrencyText.text = CurrencyFormatter.FormatCurrency(coinCurrency);
         }
+    }
+
+    private void SaveCurrency()
+    {
+        Debug.Log($"[SaveCurrency] –ü–µ—Ä–µ–¥ —Å–æ—Ö—Ä–∞–Ω–µ–Ω–∏–µ–º: coinCurrency = {coinCurrency}");
+        YG2.saves.coinCurrency = coinCurrency;
     }
 }

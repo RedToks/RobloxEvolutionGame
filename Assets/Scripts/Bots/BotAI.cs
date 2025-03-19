@@ -38,21 +38,42 @@ public class BotAI : MonoBehaviour
         AssignRandomSkin();
         AssignRandomHair();
 
+        if (!agent.isOnNavMesh) // Если бот не на NavMesh, пытаемся поставить его
+        {
+            TryPlaceOnNavMesh();
+        }
+
         StartCoroutine(BotBehavior());
         StartCoroutine(RandomJumpBehavior());
+    }
+
+    private void TryPlaceOnNavMesh()
+    {
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+        {
+            transform.position = hit.position; // Перемещаем бота на ближайшую точку NavMesh
+            agent.Warp(hit.position); // Перемещаем агент точно в эту позицию
+        }
+        else
+        {
+            Debug.LogError($"Бот {gameObject.name} не смог найти ближайшую точку на NavMesh!");
+        }
     }
 
     private IEnumerator BotBehavior()
     {
         while (true)
         {
-            Vector3 randomPoint = GetRandomNavMeshPoint();
-            agent.SetDestination(randomPoint);
-            animator.SetBool("run", true);
+            if (agent.isActiveAndEnabled && agent.isOnNavMesh) // Проверяем, активен ли агент и находится ли он на NavMesh
+            {
+                Vector3 randomPoint = GetRandomNavMeshPoint();
+                agent.SetDestination(randomPoint);
+                animator.SetBool("run", true);
 
-            yield return new WaitUntil(() => !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance);
-            agent.ResetPath();
-            animator.SetBool("run", false);
+                yield return new WaitUntil(() => !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance);
+                agent.ResetPath();
+                animator.SetBool("run", false);
+            }
 
             float waitTime = Random.Range(minWaitTime, maxWaitTime);
             yield return new WaitForSeconds(waitTime);

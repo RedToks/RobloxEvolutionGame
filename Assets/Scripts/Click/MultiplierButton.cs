@@ -1,19 +1,22 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
+using YG;
 
 public class MultiplierButton : MonoBehaviour
 {
-    public Image icon; // Иконка множителя
-    public TextMeshProUGUI multiplierText; // Текст множителя (например, x200)
-    public Button activateButton; // Кнопка "Активировать"
-    public GameObject lockPanel; // Панель с замком
-    public TextMeshProUGUI costText; // Текст стоимости
-    public GameObject checkmarkImage; // ✅ Галочка
+    public Image icon;
+    public TextMeshProUGUI multiplierText;
+    public Button activateButton;
+    public GameObject lockPanel;
+    public TextMeshProUGUI costText;
+    public GameObject checkmarkImage;
 
     public float multiplier { get; private set; }
     private long unlockCost;
     private bool isActivated = false;
+
 
     public void Setup(Sprite newIcon, float newMultiplier, long newCost)
     {
@@ -24,6 +27,7 @@ public class MultiplierButton : MonoBehaviour
         multiplierText.text = $"x{multiplier}";
         costText.text = CurrencyFormatter.FormatCurrency(unlockCost);
 
+        LoadState();
         UpdateState();
     }
 
@@ -33,7 +37,7 @@ public class MultiplierButton : MonoBehaviour
         {
             BrainCurrency.Instance.OnCurrencyChanged += UpdateState;
         }
-        UpdateState(); // Чтобы сразу проверить состояние при старте
+        UpdateState();
     }
 
     private void OnDisable()
@@ -47,9 +51,9 @@ public class MultiplierButton : MonoBehaviour
     public void Activate()
     {
         ClickMultiplier.Instance.SetClickMultiplier(multiplier);
-        Debug.Log($"Активирован множитель: x{multiplier}");
-
         isActivated = true;
+        YG2.saves.selectedMultiplier = multiplier; // ✅ Запоминаем выбранный множитель
+
         UpdateState();
     }
 
@@ -61,18 +65,32 @@ public class MultiplierButton : MonoBehaviour
 
     private void UpdateState()
     {
-        bool isUnlocked = BrainCurrency.Instance.brainCurrency >= unlockCost;
-        // Отображение множителя, если он разблокирован
+        bool isUnlocked = YG2.saves.unlockedMultipliers.Contains(multiplier);
         multiplierText.gameObject.SetActive(isUnlocked);
-
-        // Управляем замком и доступностью кнопки
         lockPanel.SetActive(!isUnlocked);
         activateButton.interactable = isUnlocked;
-
-        // Управляем отображением кнопки и галочки
         activateButton.gameObject.SetActive(!isActivated);
         checkmarkImage.SetActive(isActivated);
     }
 
+    private void LoadState()
+    {
+        bool isUnlocked = YG2.saves.unlockedMultipliers.Contains(multiplier);
+        float savedMultiplier = YG2.saves.selectedMultiplier;
 
+        if (isUnlocked && multiplier == savedMultiplier)
+        {
+            isActivated = true;
+            ClickMultiplier.Instance.SetClickMultiplier(multiplier);
+        }
+    }
+
+    public void UnlockMultiplier()
+    {
+        if (!YG2.saves.unlockedMultipliers.Contains(multiplier))
+        {
+            YG2.saves.unlockedMultipliers.Add(multiplier);
+        }
+        UpdateState();
+    }
 }

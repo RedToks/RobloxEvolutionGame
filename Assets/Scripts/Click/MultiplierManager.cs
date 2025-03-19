@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using YG;
+using System.Collections;
 
 public class MultiplierManager : MonoBehaviour
 {
@@ -11,10 +13,13 @@ public class MultiplierManager : MonoBehaviour
     public Image bottomMultiplierIcon;
 
     private MultiplierButton activeMultiplierButton;
-    private bool hasNewUnlockedMultiplier = false; // 🔹 Флаг нового множителя
+    private bool hasNewUnlockedMultiplier = false;
+    private static bool isSavingAllowed = true; // 🔹 Флаг разрешения сохранения
 
     private void Start()
     {
+        StartCoroutine(AutoSaveRoutine()); // 🔹 Запуск автосохранения раз в 10 секунд
+
         foreach (MultiplierData data in multipliers)
         {
             data.ParseUnlockCost();
@@ -24,12 +29,16 @@ public class MultiplierManager : MonoBehaviour
 
             buttonScript.Setup(data.icon, data.multiplier, data.unlockCost);
             buttonScript.activateButton.onClick.AddListener(() => ActivateMultiplier(buttonScript));
+
+            // 🔹 Загружаем сохраненный множитель
+            if (YG2.saves.selectedMultiplier == data.multiplier)
+            {
+                ActivateMultiplier(buttonScript, false);
+            }
         }
 
-        // 🔹 Проверяем множители при старте
         CheckForNewMultipliers();
 
-        // 🔹 Подписка на обновление валюты
         if (BrainCurrency.Instance != null)
         {
             BrainCurrency.Instance.OnCurrencyChanged += CheckForNewMultipliers;
@@ -44,7 +53,7 @@ public class MultiplierManager : MonoBehaviour
         }
     }
 
-    private void ActivateMultiplier(MultiplierButton newButton)
+    private void ActivateMultiplier(MultiplierButton newButton, bool save = true)
     {
         if (activeMultiplierButton != null)
         {
@@ -53,15 +62,19 @@ public class MultiplierManager : MonoBehaviour
 
         activeMultiplierButton = newButton;
         activeMultiplierButton.Activate();
-
         bottomMultiplierIcon.sprite = newButton.icon.sprite;
 
-        // 🔹 Сбрасываем уведомление при активации множителя
+        // 🔹 Сохраняем множитель, но с отложенным сохранением
+        if (save)
+        {
+            YG2.saves.selectedMultiplier = newButton.multiplier;
+            RequestSave(); // 🔹 Отложенное сохранение
+        }
+
         hasNewUnlockedMultiplier = false;
         notificationIcon.SetNotification(false);
     }
 
-    // 🔹 Проверяем, появился ли новый множитель
     private void CheckForNewMultipliers()
     {
         bool foundNewMultiplier = false;
@@ -69,23 +82,23 @@ public class MultiplierManager : MonoBehaviour
         foreach (MultiplierData data in multipliers)
         {
             bool isUnlocked = BrainCurrency.Instance.brainCurrency >= data.unlockCost;
-            bool wasLockedBefore = PlayerPrefs.GetInt($"Multiplier_{data.multiplier}_Unlocked", 0) == 0;
+            bool wasLockedBefore = !YG2.saves.unlockedMultipliers.Contains(data.multiplier);
 
             if (isUnlocked && wasLockedBefore)
             {
                 foundNewMultiplier = true;
-                PlayerPrefs.SetInt($"Multiplier_{data.multiplier}_Unlocked", 1); // Сохраняем, что множитель разблокирован
+                YG2.saves.unlockedMultipliers.Add(data.multiplier);
+                RequestSave(); // 🔹 Отложенное сохранение
             }
         }
 
         if (foundNewMultiplier)
         {
             hasNewUnlockedMultiplier = true;
-            notificationIcon.SetNotification(true); // Включаем уведомление
+            notificationIcon.SetNotification(true);
         }
     }
 
-    // 🔹 Вызываем этот метод, когда игрок открывает панель множителей
     public void OnMultiplierPanelOpened()
     {
         hasNewUnlockedMultiplier = false;
@@ -96,5 +109,22 @@ public class MultiplierManager : MonoBehaviour
     {
         OnMultiplierPanelOpened();
         clickPanel.SetActive(true);
+    }
+
+    private IEnumerator AutoSaveRoutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(10f);
+            if (!isSavingAllowed) continue;
+            YG2.SaveProgress();
+            isSavingAllowed = false;
+        }
+    }
+
+    // 🔹 Метод для запроса сохранения
+    private void RequestSave()
+    {
+        isSavingAllowed = true;
     }
 }

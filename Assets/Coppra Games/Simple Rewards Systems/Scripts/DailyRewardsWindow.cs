@@ -1,21 +1,18 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections;
+using YG;
 
 namespace CoppraGames
 {
     public class DailyRewardsWindow : MonoBehaviour
     {
-        public enum RewardType
-        {
-            BrainCoin,
-            CoinCoin,
-            Pet
-        }
+        public enum RewardType { BrainCoin, CoinCoin, Pet }
 
-        [System.Serializable]
+        [Serializable]
         public class RewardData
         {
             public Sprite icon;
@@ -33,7 +30,6 @@ namespace CoppraGames
         public TextMeshProUGUI timerText;
         public TextMeshProUGUI timerText2;
         public NotificationIcon notificationIcon;
-
         public GameObject specialPetPrefab;
 
         public static DailyRewardsWindow instance;
@@ -58,13 +54,6 @@ namespace CoppraGames
             StartCoroutine(UpdateTimerCoroutine());
         }
 
-        private void LoadData()
-        {
-            string savedTime = PlayerPrefs.GetString("next_claim_time", "");
-            nextClaimTime = string.IsNullOrEmpty(savedTime) ? DateTime.UtcNow.AddHours(rewardCooldownHours) : DateTime.Parse(savedTime);
-            currentDay = PlayerPrefs.GetInt("current_day", 1);
-        }
-
         private IEnumerator UpdateTimerCoroutine()
         {
             while (true)
@@ -82,11 +71,51 @@ namespace CoppraGames
             {
                 string timeString = string.Format("{0:D2}:{1:D2}:{2:D2}", timeLeft.Hours, timeLeft.Minutes, timeLeft.Seconds);
                 timerText.text = timeString;
-                timerText2.text = timeString; // Обновляем второй таймер
+                timerText2.text = timeString;
             }
             else
             {
                 NextDay();
+            }
+        }
+
+        private void NextDay()
+        {
+            currentDay++;
+            nextClaimTime = DateTime.UtcNow.AddHours(rewardCooldownHours);
+
+            if (currentDay > resetDay)
+            {
+                currentDay = 1;
+                ResetAllRewards();
+            }
+
+            YG2.saves.nextClaimTime = nextClaimTime.ToString();
+            YG2.saves.currentDay = currentDay;
+            YG2.SaveProgress();
+
+            UpdateRewards();
+        }
+
+        private void LoadData()
+        {
+            if (string.IsNullOrEmpty(YG2.saves.nextClaimTime))
+            {
+                nextClaimTime = DateTime.UtcNow.AddHours(rewardCooldownHours);
+            }
+            else
+            {
+                nextClaimTime = DateTime.Parse(YG2.saves.nextClaimTime);
+            }
+
+            currentDay = YG2.saves.currentDay;
+
+            Debug.Log($"Загруженный день: {currentDay}"); // Проверка в консоли
+
+            for (int i = 1; i <= resetDay; i++)
+            {
+                bool claimed = YG2.saves.rewardClaimed.ContainsKey(i) && YG2.saves.rewardClaimed[i];
+                Debug.Log($"День {i}: {(claimed ? "забран" : "не забран")}"); // Проверка сохраненных данных
             }
         }
 
@@ -104,38 +133,20 @@ namespace CoppraGames
                 ResetAllRewards();
             }
 
-            PlayerPrefs.SetString("next_claim_time", nextClaimTime.ToString());
-            PlayerPrefs.SetInt("current_day", currentDay);
-            PlayerPrefs.Save();
-
-            UpdateRewards();
-        }
-
-        private void NextDay()
-        {
-            currentDay++;
-            nextClaimTime = DateTime.UtcNow.AddHours(rewardCooldownHours);
-
-            if (currentDay > resetDay)
-            {
-                currentDay = 1;
-                ResetAllRewards();
-            }
-
-            PlayerPrefs.SetString("next_claim_time", nextClaimTime.ToString());
-            PlayerPrefs.SetInt("current_day", currentDay);
-            PlayerPrefs.Save();
-
+            YG2.saves.nextClaimTime = nextClaimTime.ToString();
+            YG2.saves.currentDay = currentDay;
+            YG2.SaveProgress();
             UpdateRewards();
         }
 
         private void ResetAllRewards()
         {
+            YG2.saves.rewardClaimed.Clear();
             for (int i = 1; i <= resetDay; i++)
             {
-                PlayerPrefs.DeleteKey("reward_claimed_" + i);
+                YG2.saves.rewardClaimed[i] = false;
             }
-            PlayerPrefs.Save();
+            YG2.SaveProgress();
         }
 
         private void UpdateRewards()
@@ -182,30 +193,39 @@ namespace CoppraGames
                 case RewardType.BrainCoin:
                     BrainCurrency.Instance.AddBrainCurrency(reward.count);
                     break;
-
                 case RewardType.CoinCoin:
                     NeuroCurrency.Instance.AddCoinCurrency(reward.count);
                     break;
-
                 case RewardType.Pet:
                     GivePlayerPet(reward);
                     break;
             }
 
-            PlayerPrefs.SetInt("reward_claimed_" + day, 1);
-            PlayerPrefs.Save();
-            QuestManager.instance.OnAchieveQuestGoal(QuestManager.QuestGoals.COLLECT_DAILY_REWARDS);
+            // Добавляем в словарь вручную, если ключа нет
+            if (!YG2.saves.rewardClaimed.ContainsKey(day))
+            {
+                YG2.saves.rewardClaimed.Add(day, true);
+            }
+            else
+            {
+                YG2.saves.rewardClaimed[day] = true;
+            }
+
+            Debug.Log($"✅ День {day} успешно сохранен как полученный!");
+
+            YG2.SaveProgress();
         }
+
 
         private void GivePlayerPet(RewardData reward)
         {
-            Pet newPet = new Pet("Special Pet", reward.icon, specialPetPrefab, 500f, Pet.PetRarity.Special);
+            Pet newPet = new Pet(reward.icon, specialPetPrefab, 500f, Pet.PetRarity.Special);
             petPanelUI.AddPet(newPet);
         }
 
         public bool IsDailyRewardClaimed(int day)
         {
-            return PlayerPrefs.GetInt("reward_claimed_" + day, 0) == 1;
+            return YG2.saves.rewardClaimed.ContainsKey(day) && YG2.saves.rewardClaimed[day];
         }
 
         private void RefreshClaimButton()

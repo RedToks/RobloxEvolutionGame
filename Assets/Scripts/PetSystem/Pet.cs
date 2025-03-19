@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using UnityEngine;
 
 [System.Serializable]
@@ -12,15 +11,27 @@ public class Pet
         Special
     }
 
-    public string Name; // Имя питомца
-    public Sprite Icon; // Иконка питомца
-    public GameObject Prefab; // Префаб питомца
-    public float Power; // Сила питомца
+    public Sprite Icon;
+    public GameObject Prefab;
+    public float Power;
     public PetRarity Rarity;
 
-    public Pet(string name, Sprite icon, GameObject prefab, float power, PetRarity rarity)
+    public override bool Equals(object obj)
     {
-        Name = name;
+        if (obj is Pet otherPet)
+        {
+            return this.Prefab != null && otherPet.Prefab != null && this.Prefab.name == otherPet.Prefab.name;
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return Prefab.name.GetHashCode();
+    }
+
+    public Pet(Sprite icon, GameObject prefab, float power, PetRarity rarity)
+    {
         Icon = icon;
         Prefab = prefab;
         Power = power;

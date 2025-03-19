@@ -27,6 +27,23 @@ public class BrainCoinClicker : MonoBehaviour
     private bool isAutoClickerActive = false; // Флаг активации автокликера
     private Coroutine autoClickCoroutine; // Ссылка на корутину автокликера
 
+    private void OnEnable()
+    {
+        if (ClickMultiplier.Instance != null)
+        {
+            ClickMultiplier.Instance.OnMultiplierChanged += UpdateBrainCoinText;
+            UpdateBrainCoinText(ClickMultiplier.Instance.TotalMultiplier); // 🔹 Обновляем при включении Canvas
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (ClickMultiplier.Instance != null)
+        {
+            ClickMultiplier.Instance.OnMultiplierChanged -= UpdateBrainCoinText;
+        }
+    }
+
     private void Start()
     {
         if (uiCamera == null)
@@ -44,6 +61,8 @@ public class BrainCoinClicker : MonoBehaviour
 
     private void Update()
     {
+        if (Time.timeScale == 0) { return; }
+
         if (Input.GetMouseButtonDown(0) && !isAutoClickerActive)
         {
             AttemptClick();
@@ -56,10 +75,8 @@ public class BrainCoinClicker : MonoBehaviour
         {
             int totalCoins = Mathf.RoundToInt(baseBrainCoinsPerClick * ClickMultiplier.Instance.TotalMultiplier);
 
-            // Получаем текущий язык
-            string lang = YandexGame.lang;
+            string lang = YG2.lang;
 
-            // Задаем текст в зависимости от языка
             string text = lang == "ru" ? $"+{CurrencyFormatter.FormatCurrency(totalCoins)} / клик"
                                        : $"+{CurrencyFormatter.FormatCurrency(totalCoins)} / click";
 

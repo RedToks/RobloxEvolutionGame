@@ -2,32 +2,37 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
+using YG;
 
 public class HairManager : MonoBehaviour
 {
-    public List<Hair> hairs; // Список причесок
-    public Transform contentPanel; // Панель с кнопками
-    public GameObject hairButtonPrefab; // Префаб кнопки
+    public List<Hair> hairs;
+    public Transform contentPanel;
+    public GameObject hairButtonPrefab;
     public HairColorPicker hairColorPicker;
 
-    private int selectedHairIndex = 0;
 
     private void Start()
     {
         LoadHairStates();
         GenerateHairButtons();
-        ActivateHair(PlayerPrefs.GetInt("SelectedHair", 0));
+
+        if (YG2.saves.selectedHairIndex < 0 || YG2.saves.selectedHairIndex >= hairs.Count)
+        {
+            YG2.saves.selectedHairIndex = 0;
+        }
+
+        ActivateHair(YG2.saves.selectedHairIndex);
     }
 
     private void GenerateHairButtons()
     {
-        // Очищаем панель
         foreach (Transform child in contentPanel)
         {
             Destroy(child.gameObject);
         }
 
-        int selectedHair = PlayerPrefs.GetInt("SelectedHair", 0);
+        int selectedHair = YG2.saves.selectedHairIndex;
 
         for (int i = 0; i < hairs.Count; i++)
         {
@@ -48,18 +53,14 @@ public class HairManager : MonoBehaviour
                 return;
             }
 
+            bool purchaseSuccess = false;
+
             if (currencyType == Hair.CurrencyType.BrainCoin)
             {
                 if (BrainCurrency.Instance.brainCurrency >= hair.brainCoinPrice)
                 {
                     BrainCurrency.Instance.SpendBrainCurrency(hair.brainCoinPrice);
-                    hair.isPurchased = true;
-                    PlayerPrefs.SetInt($"Hair_{index}", 1);
-                    ActivateHair(index);
-                }
-                else
-                {
-                    Debug.Log("Not enough BrainCoins!");
+                    purchaseSuccess = true;
                 }
             }
             else if (currencyType == Hair.CurrencyType.CoinCoin)
@@ -67,48 +68,71 @@ public class HairManager : MonoBehaviour
                 if (NeuroCurrency.Instance.coinCurrency >= hair.coinCoinPrice)
                 {
                     NeuroCurrency.Instance.SpendCoinCurrency(hair.coinCoinPrice);
-                    hair.isPurchased = true;
-                    PlayerPrefs.SetInt($"Hair_{index}", 1);
-                    ActivateHair(index);
-                }
-                else
-                {
-                    Debug.Log("Not enough CoinCoins!");
+                    purchaseSuccess = true;
                 }
             }
-            GenerateHairButtons(); // Обновляем интерфейс после покупки
+
+            if (purchaseSuccess)
+            {
+                MarkHairAsPurchased(index);
+                GenerateHairButtons(); // ✅ Пересоздаём кнопки, чтобы обновить цену
+            }
+            else
+            {
+                Debug.Log("❌ Недостаточно валюты!");
+            }
         }
+    }
+
+
+    private void MarkHairAsPurchased(int index)
+    {
+        while (YG2.saves.purchasedHairs.Length <= index)
+        {
+            YG2.saves.purchasedHairs += "0";
+        }
+
+        char[] hairArray = YG2.saves.purchasedHairs.ToCharArray();
+        hairArray[index] = '1';
+        YG2.saves.purchasedHairs = new string(hairArray);
+
+        hairs[index].isPurchased = true; // ✅ Теперь `Setup()` сразу увидит покупку
+
+        ActivateHair(index);
     }
 
     public void ActivateHair(int index)
     {
-        if (hairs[index].isPurchased)
+        if (index < 0 || index >= hairs.Count || YG2.saves.purchasedHairs.Length <= index || YG2.saves.purchasedHairs[index] != '1')
+            return;
+
+        foreach (Hair hair in hairs)
         {
-            // Выключаем все прически
-            foreach (Hair hair in hairs)
-            {
-                hair.hairPrefab.SetActive(false);
-            }
-            // Включаем выбранную прическу
-            hairs[index].hairPrefab.SetActive(true);
-            hairColorPicker.SetCurrentHairRenderer(hairs[index].hairPrefab);
-            selectedHairIndex = index;
-            PlayerPrefs.SetInt("SelectedHair", index);
-            GenerateHairButtons();
+            hair.hairPrefab.SetActive(false);
         }
+
+        hairs[index].hairPrefab.SetActive(true);
+        hairColorPicker.SetCurrentHairRenderer(hairs[index].hairPrefab);
+
+        YG2.saves.selectedHairIndex = index; // ✅ Сохраняем выбор
+
+        GenerateHairButtons();
     }
 
     private void LoadHairStates()
     {
+        if (string.IsNullOrEmpty(YG2.saves.purchasedHairs))
+            YG2.saves.purchasedHairs = "1"; // Первая прическа куплена по умолчанию
+
         for (int i = 0; i < hairs.Count; i++)
         {
-            // Первая прическа дается бесплатно
-            hairs[i].isPurchased = (i == 0) || PlayerPrefs.GetInt($"Hair_{i}", 0) == 1;
+            hairs[i].isPurchased = (i < YG2.saves.purchasedHairs.Length) && (YG2.saves.purchasedHairs[i] == '1');
         }
 
-        if (!PlayerPrefs.HasKey("SelectedHair"))
+        // ✅ Проверяем, что индекс выбранных волос загружен правильно
+        if (YG2.saves.selectedHairIndex < 0 || YG2.saves.selectedHairIndex >= hairs.Count)
         {
-            PlayerPrefs.SetInt("SelectedHair", 0);
+            YG2.saves.selectedHairIndex = 0;
         }
     }
 }

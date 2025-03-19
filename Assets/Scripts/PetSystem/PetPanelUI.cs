@@ -1,48 +1,122 @@
-using UnityEngine;
+п»їusing UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
+using System.Linq;
+using YG;
 
 public class PetPanelUI : MonoBehaviour
 {
-    public Transform selectedPetsContainer; // Верхняя сетка (выбранные питомцы)
-    public Transform allPetsContainer; // Нижняя сетка (все питомцы)
-    public GameObject petUIPrefab; // Префаб элемента UI для питомца
-    public TextMeshProUGUI selectedCounter; // Текст для счетчика 4/3
-    public Transform playerTransform; // Ссылка на игрока
-    public Button equipBestButton; // Кнопка "Оснастить лучших"
+    public Transform selectedPetsContainer;
+    public Transform allPetsContainer;
+    public GameObject petUIPrefab;
+    public TextMeshProUGUI selectedCounter;
+    public Transform playerTransform;
+    public Button equipBestButton;
     public GameObject petPanel;
-
     public NotificationIcon notificationIcon;
 
-    [SerializeField] private List<Pet> allPets = new List<Pet>(); // Все питомцы
-    private List<Pet> selectedPets = new List<Pet>(); // Выбранные питомцы
-    private Dictionary<Pet, GameObject> activePets = new Dictionary<Pet, GameObject>(); // Активные питомцы в сцене
-    private const int maxSelectedPets = 3; // Максимум выбранных питомцев
+    [SerializeField] private List<Pet> allPets = new List<Pet>();
+    private List<Pet> selectedPets = new List<Pet>();
+    private Dictionary<Pet, GameObject> activePets = new Dictionary<Pet, GameObject>();
+    private const int maxSelectedPets = 3;
     private PetOrbitManager petOrbitManager;
 
-    void Start()
+    private void Start()
     {
         petOrbitManager = FindObjectOfType<PetOrbitManager>();
-
-        // Привязываем кнопку "Оснастить лучших" к методу
         equipBestButton.onClick.AddListener(EquipBestPets);
 
+        LoadPets();
         UpdateUI();
+
+        InvokeRepeating(nameof(AutoSavePets), 10f, 10f); // РђРІС‚РѕСЃРѕС…СЂР°РЅРµРЅРёРµ СЂР°Р· РІ 10 СЃРµРє
+    }
+
+    private void SavePets()
+    {
+        YG2.saves.allPets = allPets.Select(pet => new PetData
+        {
+            IconName = pet.Icon ? pet.Icon.name : "",
+            PrefabName = pet.Prefab ? pet.Prefab.name : "",
+            Power = pet.Power,
+            Rarity = pet.Rarity
+        }).ToList();
+
+        YG2.saves.selectedPets = selectedPets.Select(pet => new PetData
+        {
+            IconName = pet.Icon ? pet.Icon.name : "",
+            PrefabName = pet.Prefab ? pet.Prefab.name : "",
+            Power = pet.Power,
+            Rarity = pet.Rarity
+        }).ToList();
+
+    }
+
+    private void AutoSavePets()
+    {
+        SavePets();
+    }
+
+    private void LoadPets()
+    {
+        allPets.Clear();
+        selectedPets.Clear();
+
+        foreach (var pet in activePets.Values) Destroy(pet);
+        activePets.Clear();
+
+        foreach (var petData in YG2.saves.allPets)
+        {
+            Pet pet = CreatePetFromData(petData);
+            if (pet != null) allPets.Add(pet);
+        }
+
+        foreach (var petData in YG2.saves.selectedPets)
+        {
+            Pet pet = CreatePetFromData(petData);
+            if (pet != null)
+            {
+                selectedPets.Add(pet);
+                SpawnPet(pet);
+            }
+        }
+
+        petOrbitManager.UpdateActivePets(activePets.Values.ToList());
+    }
+
+    private void SpawnPet(Pet pet)
+    {
+        if (activePets.ContainsKey(pet)) return;
+
+        if (pet.Prefab != null && playerTransform != null)
+        {
+            GameObject spawnedPet = Instantiate(pet.Prefab, playerTransform.position, Quaternion.identity);
+            petOrbitManager.AddPet(spawnedPet);
+            activePets[pet] = spawnedPet;
+        }
+    }
+
+    private Pet CreatePetFromData(PetData petData)
+    {
+        Sprite icon = Resources.Load<Sprite>("PetIcons/" + petData.IconName);
+        GameObject prefab = Resources.Load<GameObject>("PetPrefabs/" + petData.PrefabName);
+
+        if (prefab == null) Debug.LogError($"вќЊ РџСЂРµС„Р°Р± {petData.PrefabName} РЅРµ РЅР°Р№РґРµРЅ РІ Resources!");
+        if (icon == null) Debug.LogError($"вќЊ РРєРѕРЅРєР° {petData.IconName} РЅРµ РЅР°Р№РґРµРЅР° РІ Resources!");
+
+        return new Pet(icon, prefab, petData.Power, petData.Rarity);
     }
 
     private void UpdateUI()
     {
         selectedCounter.text = $"{selectedPets.Count}/{maxSelectedPets}";
 
-        // Очищаем контейнеры перед обновлением
         foreach (Transform child in selectedPetsContainer) Destroy(child.gameObject);
         foreach (Transform child in allPetsContainer) Destroy(child.gameObject);
 
-        // Сортируем всех питомцев по множителю (от большего к меньшему)
         allPets.Sort((a, b) => b.Power.CompareTo(a.Power));
 
-        // Заполняем список выбранных питомцев
         foreach (var pet in selectedPets)
         {
             var petUI = Instantiate(petUIPrefab, selectedPetsContainer);
@@ -52,7 +126,6 @@ public class PetPanelUI : MonoBehaviour
             petUI.GetComponent<Button>().onClick.AddListener(() => DeselectPet(pet));
         }
 
-        // Заполняем список всех питомцев (уже отсортированный)
         foreach (var pet in allPets)
         {
             var petUI = Instantiate(petUIPrefab, allPetsContainer);
@@ -66,6 +139,7 @@ public class PetPanelUI : MonoBehaviour
     public void AddPet(Pet pet)
     {
         allPets.Add(pet);
+        SavePets();
         notificationIcon.SetNotification(true);
         UpdateUI();
     }
@@ -77,8 +151,11 @@ public class PetPanelUI : MonoBehaviour
             selectedPets.Add(pet);
             allPets.Remove(pet);
             SpawnPetPrefab(pet);
+            SavePets();
             UpdateUI();
-            UpdatePetMultiplier(); // Обновляем множитель питомцев
+            UpdatePetMultiplier();
+
+            petOrbitManager.UpdateActivePets(activePets.Values.ToList());
         }
     }
 
@@ -89,19 +166,21 @@ public class PetPanelUI : MonoBehaviour
             selectedPets.Remove(pet);
             allPets.Add(pet);
             RemovePetPrefab(pet);
+            SavePets();
             UpdateUI();
-            UpdatePetMultiplier(); // Обновляем множитель питомцев
+            UpdatePetMultiplier();
+
+            petOrbitManager.UpdateActivePets(activePets.Values.ToList());
         }
     }
+
     private void UpdatePetMultiplier()
     {
-        float totalPetMultiplier = 1f; // Начальный множитель
-
+        float totalPetMultiplier = 1f;
         foreach (var pet in selectedPets)
         {
-            totalPetMultiplier += pet.Power; // Суммируем множители всех выбранных питомцев
+            totalPetMultiplier += pet.Power;
         }
-
         ClickMultiplier.Instance.SetPetMultiplier(totalPetMultiplier);
     }
 
@@ -109,9 +188,8 @@ public class PetPanelUI : MonoBehaviour
     {
         if (pet.Prefab != null)
         {
-            // Создаем экземпляр питомца
             GameObject spawnedPet = Instantiate(pet.Prefab);
-            petOrbitManager.AddPet(spawnedPet); // Добавляем в менеджер вращения
+            petOrbitManager.AddPet(spawnedPet);
             activePets[pet] = spawnedPet;
         }
     }
@@ -120,34 +198,35 @@ public class PetPanelUI : MonoBehaviour
     {
         if (activePets.ContainsKey(pet))
         {
-            petOrbitManager.RemovePet(activePets[pet]); // Убираем из менеджера вращения
+            GameObject petObject = activePets[pet];
+            petOrbitManager.RemovePet(petObject);
             activePets.Remove(pet);
+            Destroy(petObject);
         }
     }
 
     public void EquipBestPets()
     {
-        // Снимаем всех текущих питомцев
         foreach (var pet in new List<Pet>(selectedPets))
         {
             DeselectPet(pet);
         }
 
-        // Сортируем питомцев по силе
         var bestPets = new List<Pet>(allPets);
-        bestPets.Sort((a, b) => b.Power.CompareTo(a.Power)); // Сортировка по убыванию силы
+        bestPets.Sort((a, b) => b.Power.CompareTo(a.Power));
 
-        // Выбираем максимум доступных питомцев
         for (int i = 0; i < Mathf.Min(maxSelectedPets, bestPets.Count); i++)
         {
             SelectPet(bestPets[i]);
         }
+
+        petOrbitManager.UpdateActivePets(activePets.Values.ToList());
     }
 
     public void OpenPetPanel()
     {
-        petPanel.gameObject.SetActive(true); // Открываем панель
-        notificationIcon.SetNotification(false); // Убираем значок уведомления
-        UpdateUI(); // Обновляем интерфейс
+        petPanel.gameObject.SetActive(true);
+        notificationIcon.SetNotification(false);
+        UpdateUI();
     }
 }

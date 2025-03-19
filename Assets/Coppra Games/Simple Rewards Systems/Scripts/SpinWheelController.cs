@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine.UI;
 using System;
 using Random = UnityEngine.Random;
+using YG;
 
 namespace CoppraGames
 {
@@ -71,7 +72,7 @@ namespace CoppraGames
             UpdateSpinButtonState();
         }
 
-        public void TurnWheel()
+        private void TurnWheel()
         {
             if (_isStarted || !_canSpin)
                 return;
@@ -89,13 +90,15 @@ namespace CoppraGames
             _currentRotationTime = 0.0f;
             _maxRotationTime = Random.Range(5.0f, 9.0f);
 
-            PlayerPrefs.SetString(LAST_SPIN_TIME_KEY, DateTime.UtcNow.ToString());
-            PlayerPrefs.Save();
+            // Сохраняем время спина в YG2.saves
+            YG2.saves.lastSpinTime = DateTime.UtcNow.ToString();
+            YG2.SaveProgress();
 
             _canSpin = false;
             _timeRemaining = SpinCooldown;
             UpdateSpinButtonState();
         }
+
 
         void Update()
         {
@@ -232,7 +235,7 @@ namespace CoppraGames
             if (reward.petPrefab != null)
             {
                 // **Создаем питомца с характеристиками из награды**
-                Pet newPet = new Pet(reward.petName, reward.petIcon, reward.petPrefab, reward.petStrength, Pet.PetRarity.Special);
+                Pet newPet = new Pet(reward.petIcon, reward.petPrefab, reward.petStrength, Pet.PetRarity.Special);
 
                 // **Добавляем питомца в панель питомцев**
                 FindObjectOfType<PetPanelUI>().AddPet(newPet);
@@ -263,10 +266,9 @@ namespace CoppraGames
         {
             if (!_canSpin)
             {
-                string lastSpinTimeString = PlayerPrefs.GetString(LAST_SPIN_TIME_KEY, "");
-                if (!string.IsNullOrEmpty(lastSpinTimeString))
+                if (!string.IsNullOrEmpty(YG2.saves.lastSpinTime))
                 {
-                    DateTime lastSpinTime = DateTime.Parse(lastSpinTimeString);
+                    DateTime lastSpinTime = DateTime.Parse(YG2.saves.lastSpinTime);
                     TimeSpan timePassed = DateTime.UtcNow - lastSpinTime;
                     _timeRemaining = SpinCooldown - (float)timePassed.TotalSeconds;
 
@@ -283,25 +285,30 @@ namespace CoppraGames
 
         private void LoadCooldown()
         {
-            string lastSpinTimeString = PlayerPrefs.GetString(LAST_SPIN_TIME_KEY, "");
-            if (!string.IsNullOrEmpty(lastSpinTimeString))
+            if (!string.IsNullOrEmpty(YG2.saves.lastSpinTime))
             {
-                DateTime lastSpinTime = DateTime.Parse(lastSpinTimeString);
+                DateTime lastSpinTime = DateTime.Parse(YG2.saves.lastSpinTime);
                 TimeSpan timePassed = DateTime.UtcNow - lastSpinTime;
                 _timeRemaining = SpinCooldown - (float)timePassed.TotalSeconds;
 
-                if (_timeRemaining <= 0)
+                _canSpin = _timeRemaining <= 0;
+                if (_canSpin)
                 {
-                    _canSpin = true;
                     _timeRemaining = 0;
-                    UpdateSpinButtonState();
-                }
-                else
-                {
-                    _canSpin = false;
                 }
             }
+            else
+            {
+                // Если данных нет, устанавливаем начальное время
+                _canSpin = false;
+                _timeRemaining = SpinCooldown;
+                YG2.saves.lastSpinTime = DateTime.UtcNow.ToString();
+                YG2.SaveProgress();
+            }
+
+            UpdateSpinButtonState();
         }
+
 
         private void UpdateCooldownText()
         {

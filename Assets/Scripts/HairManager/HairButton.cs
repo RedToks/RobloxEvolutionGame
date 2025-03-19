@@ -19,6 +19,32 @@ public class HairButton : MonoBehaviour
     public Color affordableColor = Color.green;
     public Color unaffordableColor = Color.red;
 
+    private void OnEnable()
+    {
+        if (BrainCurrency.Instance != null)
+        {
+            BrainCurrency.Instance.OnCurrencyChanged += UpdatePriceColor;
+        }
+        if (NeuroCurrency.Instance != null)
+        {
+            NeuroCurrency.Instance.OnCurrencyChanged += UpdatePriceColor;
+        }
+
+        UpdatePriceColor(); // ✅ Сразу обновляем цвет при включении кнопки
+    }
+
+    private void OnDisable()
+    {
+        if (BrainCurrency.Instance != null)
+        {
+            BrainCurrency.Instance.OnCurrencyChanged -= UpdatePriceColor;
+        }
+        if (NeuroCurrency.Instance != null)
+        {
+            NeuroCurrency.Instance.OnCurrencyChanged -= UpdatePriceColor;
+        }
+    }
+
     public void Setup(Hair hair, int index, HairManager manager, bool isSelected)
     {
         hairManager = manager;
@@ -26,29 +52,41 @@ public class HairButton : MonoBehaviour
         priceType = hair.priceType;
 
         hairIcon.sprite = hair.icon;
+        buyButton.onClick.RemoveAllListeners(); // Удаляем старые слушатели
 
         if (hair.isPurchased)
         {
-            priceText.text = "";
+            priceText.text = ""; // Убираем цену
             buyButton.onClick.AddListener(() => hairManager.ActivateHair(hairIndex));
         }
         else
         {
-            long playerCurrency = (priceType == Hair.CurrencyType.BrainCoin) ? BrainCurrency.Instance.brainCurrency : NeuroCurrency.Instance.coinCurrency;
-            long price = (priceType == Hair.CurrencyType.BrainCoin) ? hair.brainCoinPrice : hair.coinCoinPrice;
-
-            priceText.text = FormatPriceWithIcon(price, priceType);
-            priceText.color = (playerCurrency >= price) ? affordableColor : unaffordableColor;
-
+            priceText.text = FormatPriceWithIcon(hair);
+            UpdatePriceColor();
             buyButton.onClick.AddListener(() => hairManager.BuyHair(hairIndex, priceType));
         }
 
         checkmark.SetActive(isSelected);
     }
 
-    private string FormatPriceWithIcon(long price, Hair.CurrencyType currencyType)
+    private void UpdatePriceColor()
     {
-        string spriteTag = (currencyType == Hair.CurrencyType.BrainCoin) ? "<sprite name=Brain>" : "<sprite name=Neuro>";
+        long playerCurrency = (priceType == Hair.CurrencyType.BrainCoin)
+            ? BrainCurrency.Instance.brainCurrency
+            : NeuroCurrency.Instance.coinCurrency;
+
+        long price = (priceType == Hair.CurrencyType.BrainCoin)
+            ? hairManager.hairs[hairIndex].brainCoinPrice
+            : hairManager.hairs[hairIndex].coinCoinPrice;
+
+        priceText.color = (playerCurrency >= price) ? affordableColor : unaffordableColor;
+    }
+
+
+    private string FormatPriceWithIcon(Hair hair)
+    {
+        string spriteTag = (hair.priceType == Hair.CurrencyType.BrainCoin) ? "<sprite name=Brain>" : "<sprite name=Neuro>";
+        long price = (hair.priceType == Hair.CurrencyType.BrainCoin) ? hair.brainCoinPrice : hair.coinCoinPrice;
         return $"{spriteTag}{CurrencyFormatter.FormatCurrency(price)}";
     }
 }

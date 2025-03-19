@@ -1,0 +1,67 @@
+{
+  "stringKeys": [],
+  "stringValues": [],
+  "floatKeys": [],
+  "floatValues": [],
+  "intKeys": [],
+  "intValues": [],
+  "intExample": 5,
+  "strExample": "Hello!",
+  "boolExample": [
+    false,
+    false,
+    false,
+    false
+  ],
+  "idSave": 23,
+  "selectedMultiplier": 1.0,
+  "unlockedMultipliers": [
+    2.0,
+    3.0,
+    4.0,
+    5.0
+  ],
+  "bonusTimerRemaining": 546.2964,
+  "lastExitTime": "19.03.2025 10:34:57",
+  "brainCurrency": 47250,
+  "coinCurrency": 0,
+  "allPets": [],
+  "selectedPets": [
+    {
+      "IconName": "Dino",
+      "PrefabName": "Dino",
+      "Power": 5.0,
+      "Rarity": 1
+    }
+  ],
+  "selectedHairIndex": 0,
+  "purchasedHairs": "1",
+  "selectedSkin": 0,
+  "purchasedSkins": "1",
+  "clickMultiplier": 1000,
+  "petMultiplier": 6000,
+  "isObjectsDisabled": false,
+  "isDoubleEarningsActive": true,
+  "isDoubleNeuroEarningsActive": false,
+  "isDoubleEarningsDisabled": true,
+  "isDoubleNeuroEarningsDisabled": false,
+  "playedTime": 98,
+  "nextClaimTime": "20.03.2025 10:33:59",
+  "currentDay": 1,
+  "rewardClaimed": {
+    "1": false,
+    "2": false,
+    "3": false,
+    "4": false,
+    "5": false,
+    "6": false,
+    "7": false
+  },
+  "lastSpinTime": "19.03.2025 10:33:59",
+  "questValues": {
+    "2": 96,
+    "0": 97,
+    "1": 1
+  },
+  "questClaimed": {}
+}

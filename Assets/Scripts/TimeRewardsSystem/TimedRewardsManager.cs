@@ -36,27 +36,11 @@ public class TimedRewardsManager : MonoBehaviour
     public NotificationIcon notificationIcon;
 
     public float playTime;
-    private const string LAST_LOGIN_KEY = "LastLoginTime";
 
     private void Awake()
     {
-        LoadPlayTime();
         StartCoroutine(UpdatePlayTime());
         CreateRewardButtons();
-    }
-
-    private void LoadPlayTime()
-    {
-        // Загружаем последнее время выхода
-        string lastLoginString = PlayerPrefs.GetString(LAST_LOGIN_KEY, "");
-        if (!string.IsNullOrEmpty(lastLoginString))
-        {
-            DateTime lastLoginTime = DateTime.Parse(lastLoginString);
-            TimeSpan timeSinceLastLogin = DateTime.UtcNow - lastLoginTime;
-
-            // Добавляем прошедшее время в playTime
-            playTime += (float)timeSinceLastLogin.TotalSeconds;
-        }
     }
 
     private IEnumerator UpdatePlayTime()
@@ -64,8 +48,6 @@ public class TimedRewardsManager : MonoBehaviour
         while (true)
         {
             playTime += 1;
-            PlayerPrefs.SetString(LAST_LOGIN_KEY, DateTime.UtcNow.ToString());
-            PlayerPrefs.Save();
             UpdateRewardButtons();
             yield return new WaitForSeconds(1);
         }
@@ -86,8 +68,6 @@ public class TimedRewardsManager : MonoBehaviour
         if (playTime >= reward.requiredTime && !reward.isClaimed)
         {
             reward.isClaimed = true;
-            PlayerPrefs.SetInt(reward.id, 1);
-            PlayerPrefs.Save();
 
             GiveReward(reward);
             UpdateRewardButtons();
@@ -116,7 +96,7 @@ public class TimedRewardsManager : MonoBehaviour
     {
         if (reward.petPrefab != null)
         {
-            Pet newPet = new Pet(reward.petName, reward.petIcon, reward.petPrefab, reward.petStrength, Pet.PetRarity.Special);
+            Pet newPet = new Pet(reward.petIcon, reward.petPrefab, reward.petStrength, Pet.PetRarity.Special);
 
             FindObjectOfType<PetPanelUI>().AddPet(newPet);
         }

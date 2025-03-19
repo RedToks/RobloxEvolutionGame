@@ -1,19 +1,28 @@
-using UnityEngine;
+п»їusing UnityEngine;
 
 public class HairColorPicker : MonoBehaviour
 {
-    public HairManager hairManager; // Ссылка на HairManager
-    public FlexibleColorPicker colorPicker; // Ссылка на FlexibleColorPicker
+    public HairManager hairManager;
+    public FlexibleColorPicker colorPicker;
     private Renderer currentHairRenderer;
 
     private void Start()
     {
-        SetCurrentHairRenderer(hairManager.hairs[PlayerPrefs.GetInt("SelectedHair", 0)].hairPrefab);
+        int selectedHairIndex = PlayerPrefs.GetInt("SelectedHair", 0);
+        SetCurrentHairRenderer(hairManager.hairs[selectedHairIndex].hairPrefab);
+
+        // Р—Р°РіСЂСѓР¶Р°РµРј Рё РїСЂРёРјРµРЅСЏРµРј СЃРѕС…СЂР°РЅС‘РЅРЅС‹Р№ С†РІРµС‚
+        Color savedColor = LoadHairColor();
+        colorPicker.color = savedColor;
+        ApplyHairColor(savedColor);
+
+        // Р”РѕР±Р°РІР»СЏРµРј РѕР±СЂР°Р±РѕС‚С‡РёРє СЃРѕР±С‹С‚РёСЏ РёР·РјРµРЅРµРЅРёСЏ С†РІРµС‚Р°
+        colorPicker.onColorChange.AddListener(OnColorChange);
     }
 
-    private void Update()
+    private void OnDestroy()
     {
-        UpdateHairColor(colorPicker.color); // Постоянно обновляем цвет волос
+        colorPicker.onColorChange.RemoveListener(OnColorChange);
     }
 
     public void SetCurrentHairRenderer(GameObject hairPrefab)
@@ -21,15 +30,50 @@ public class HairColorPicker : MonoBehaviour
         if (hairPrefab != null)
         {
             currentHairRenderer = hairPrefab.GetComponentInChildren<Renderer>();
-            UpdateHairColor(colorPicker.color); // Применяем текущий цвет сразу
+
+            // РџСЂРёРјРµРЅСЏРµРј С†РІРµС‚ СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ СѓСЃС‚Р°РЅРѕРІРєРё РЅРѕРІРѕРіРѕ Renderer
+            Color savedColor = LoadHairColor();
+            ApplyHairColor(savedColor);
         }
     }
 
-    private void UpdateHairColor(Color newColor)
+    private void OnColorChange(Color newColor)
+    {
+        ApplyHairColor(newColor);
+        SaveHairColor(newColor);
+    }
+
+    private void ApplyHairColor(Color color)
     {
         if (currentHairRenderer != null)
         {
-            currentHairRenderer.material.SetColor("_BaseColor", newColor);
+            if (currentHairRenderer.material.HasProperty("_BaseColor"))
+            {
+                currentHairRenderer.material.SetColor("_BaseColor", color);
+            }
+            else
+            {
+                currentHairRenderer.material.color = color;
+            }
         }
+    }
+
+    private void SaveHairColor(Color color)
+    {
+        PlayerPrefs.SetFloat("HairColor_R", color.r);
+        PlayerPrefs.SetFloat("HairColor_G", color.g);
+        PlayerPrefs.SetFloat("HairColor_B", color.b);
+        PlayerPrefs.SetFloat("HairColor_A", color.a);
+        PlayerPrefs.Save();
+    }
+
+    private Color LoadHairColor()
+    {
+        return new Color(
+            PlayerPrefs.GetFloat("HairColor_R", 1f),
+            PlayerPrefs.GetFloat("HairColor_G", 1f),
+            PlayerPrefs.GetFloat("HairColor_B", 1f),
+            PlayerPrefs.GetFloat("HairColor_A", 1f)
+        );
     }
 }

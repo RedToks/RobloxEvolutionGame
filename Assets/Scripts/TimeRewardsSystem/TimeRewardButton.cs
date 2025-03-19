@@ -30,7 +30,7 @@ public class TimeRewardButton : MonoBehaviour
     public void UpdateState(float playTime)
     {
         float timeLeft = rewardData.requiredTime - playTime;
-        string lang = YandexGame.lang; // Определяем текущий язык
+        string lang = YG2.lang; // Определяем текущий язык
 
         if (rewardData.isClaimed)
         {

@@ -124,6 +124,8 @@ public class ResourceMining : MonoBehaviour
 
     private void Update()
     {
+        if (Time.timeScale == 0) return;
+
         AdjustMiningSpeed();
 
         if (canStartMining && !isMining && (Input.GetKeyDown(KeyCode.E)))

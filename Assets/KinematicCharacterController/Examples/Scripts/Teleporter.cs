@@ -9,7 +9,7 @@ namespace KinematicCharacterController.Examples
     public class Teleporter : MonoBehaviour
     {
         public Teleporter TeleportTo;
-
+        public long requiredBrainCoins = 1000; // 🔹 Сколько BrainCoins нужно для входа
         public UnityAction<ExampleCharacterController> OnCharacterTeleport;
 
         public bool isBeingTeleportedTo { get; set; }
@@ -21,13 +21,23 @@ namespace KinematicCharacterController.Examples
                 ExampleCharacterController cc = other.GetComponent<ExampleCharacterController>();
                 if (cc)
                 {
-                    cc.Motor.SetPositionAndRotation(TeleportTo.transform.position, TeleportTo.transform.rotation);
-
-                    if (OnCharacterTeleport != null)
+                    // 🔹 Проверяем, есть ли у игрока достаточно BrainCoins
+                    if (BrainCurrency.Instance.brainCurrency >= requiredBrainCoins)
                     {
-                        OnCharacterTeleport(cc);
+
+                        // 🔹 Телепортируем
+                        cc.Motor.SetPositionAndRotation(TeleportTo.transform.position, TeleportTo.transform.rotation);
+
+                        if (OnCharacterTeleport != null)
+                        {
+                            OnCharacterTeleport(cc);
+                        }
+                        TeleportTo.isBeingTeleportedTo = true;
                     }
-                    TeleportTo.isBeingTeleportedTo = true;
+                    else
+                    {
+                        Debug.Log("Недостаточно BrainCoins для телепортации!");
+                    }
                 }
             }
 

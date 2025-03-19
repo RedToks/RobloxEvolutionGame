@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using YG;
 
 namespace CoppraGames
 {
@@ -67,16 +68,18 @@ namespace CoppraGames
 
             public void CalculateReward()
             {
+                int baseReward = 100; // Базовая награда
+
                 switch (type)
                 {
                     case Type.BrainCoins:
-                        count = Mathf.FloorToInt(BrainCurrency.Instance.brainCurrency * 0.1f);
+                        count = baseReward + Mathf.FloorToInt(BrainCurrency.Instance.brainCurrency * 0.1f);
                         break;
                     case Type.CoinCoins:
-                        count = Mathf.FloorToInt(NeuroCurrency.Instance.coinCurrency * 0.1f);
+                        count = baseReward + Mathf.FloorToInt(NeuroCurrency.Instance.coinCurrency * 0.1f);
                         break;
                     case Type.Pets:
-                        count = 1;
+                        count = 1; // Для питомцев логика не меняется
                         break;
                 }
             }
@@ -87,22 +90,23 @@ namespace CoppraGames
 
         public int GetQuestValue(int index)
         {
-            return PlayerPrefs.GetInt("quest_value_" + index, 0);
+            return YG2.saves.questValues.ContainsKey(index) ? YG2.saves.questValues[index] : 0;
         }
 
         public void SetQuestValue(int index, int value)
         {
-            PlayerPrefs.SetInt("quest_value_" + index, value);
+            YG2.saves.questValues[index] = value;
         }
 
         public bool IsQuestClaimed(int index)
         {
-            return PlayerPrefs.GetInt("quest_claimed_" + index, 0) == 1;
+            return YG2.saves.questClaimed.ContainsKey(index) && YG2.saves.questClaimed[index];
         }
 
         public void ClaimQuest(int index, bool isTrue)
         {
-            PlayerPrefs.SetInt("quest_claimed_" + index, isTrue ? 1 : 0);
+            YG2.saves.questClaimed[index] = isTrue;
+            YG2.SaveProgress(); // Сохраняем прогресс
         }
 
         public void OnAchieveQuestGoal(QuestGoals goal)
