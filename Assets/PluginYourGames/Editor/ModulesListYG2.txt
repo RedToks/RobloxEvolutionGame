@@ -9,7 +9,6 @@ InterstitialAdv v1.001
 Leaderboards v1.0
 Localization v1.001
 Metrica v1.01
-OpenURL v1.002
 Payments v1.0
 PlayerStats v1.001
 QuitGameEvent v1.001

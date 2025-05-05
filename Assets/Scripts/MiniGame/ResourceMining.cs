@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 using System.Collections;
 using KinematicCharacterController.Examples;
-using static UnityEngine.Rendering.ReloadAttribute;
 using KinematicCharacterController;
 using DG.Tweening;
 using TMPro;
@@ -165,7 +164,14 @@ public class ResourceMining : MonoBehaviour
 
     private void UpdateBrainCoinsUI()
     {
-        rewardText.text = "<sprite name=\"Neuro\">+" + CurrencyFormatter.FormatCurrency(rewardAmount);
+        int displayedReward = rewardAmount;
+
+        if (BuyController.isDoubleNeuroEarningsActive)
+        {
+            displayedReward *= 2; // Удваиваем, если бонус активен
+        }
+
+        rewardText.text = "<sprite name=\"Neuro\">+" + CurrencyFormatter.FormatCurrency(displayedReward);
         playerBrainCoinsText.text = "<sprite name=\"Brain\">" + CurrencyFormatter.FormatCurrency(BrainCurrency.Instance.brainCurrency).ToString();
         enemyBrainCoinsText.text = "<sprite name=\"Brain\">" + CurrencyFormatter.FormatCurrency(requiredBrainCoins).ToString();
     }
@@ -337,10 +343,23 @@ public class ResourceMining : MonoBehaviour
 
     private void ShowReward()
     {
-        GameObject rewardInstance = Instantiate(rewardPrefab, rewardSpawnPoint);
-        rewardInstance.GetComponent<RewardUIController>().ShowReward(rewardAmount, neuroCurrencyIcon);
+        int finalRewardAmount = rewardAmount;
 
-        NeuroCurrency.Instance.AddCoinCurrency(rewardAmount);
+        // Проверяем, активирован ли x2 NeuroCoins
+        if (BuyController.isDoubleNeuroEarningsActive)
+        {
+            finalRewardAmount *= 2; // Удваиваем награду
+        }
+
+        // Отображаем награду в UI
+        GameObject rewardInstance = Instantiate(rewardPrefab, rewardSpawnPoint);
+        rewardInstance.GetComponent<RewardUIController>().ShowReward(finalRewardAmount, neuroCurrencyIcon);
+
+        // Начисляем валюту
+        NeuroCurrency.Instance.AddCoinCurrency(finalRewardAmount);
+
+        // Обновляем текст награды в UI
+        rewardText.text = "<sprite name=\"Neuro\">+" + CurrencyFormatter.FormatCurrency(finalRewardAmount);
     }
 
     private void ResetMiningUI()

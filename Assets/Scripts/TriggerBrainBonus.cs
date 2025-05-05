@@ -3,6 +3,7 @@ using TMPro;
 using System.Collections;
 using System;
 using YG;
+using KinematicCharacterController.Examples;
 
 public class TriggerBrainBonus : MonoBehaviour
 {
@@ -39,7 +40,7 @@ public class TriggerBrainBonus : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && canReceiveBonus)
+        if (other.TryGetComponent(out ExampleCharacterController player) && canReceiveBonus)
         {
             GiveBrainBonus();
             StartCoroutine(StartCooldown());

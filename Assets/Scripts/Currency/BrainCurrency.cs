@@ -30,6 +30,7 @@ public class BrainCurrency : MonoBehaviour
     {
         brainCurrency = YG2.saves.brainCurrency;
         StartCoroutine(AutoSaveCoroutine());
+        UpdateUI();
     }
 
     private IEnumerator AutoSaveCoroutine()

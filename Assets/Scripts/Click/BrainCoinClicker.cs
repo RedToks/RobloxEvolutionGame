@@ -5,6 +5,7 @@ using DG.Tweening;
 using System.Collections;
 using CoppraGames;
 using YG;
+using KinematicCharacterController.Examples;
 
 public class BrainCoinClicker : MonoBehaviour
 {
@@ -25,7 +26,8 @@ public class BrainCoinClicker : MonoBehaviour
 
     private float lastClickTime = 0f; // Время последнего клика
     private bool isAutoClickerActive = false; // Флаг активации автокликера
-    private Coroutine autoClickCoroutine; // Ссылка на корутину автокликера
+    private Coroutine autoClickCoroutine; // Ссылка на корутину автокликер
+    private ExamplePlayer examplePlayer;
 
     private void OnEnable()
     {
@@ -46,6 +48,7 @@ public class BrainCoinClicker : MonoBehaviour
 
     private void Start()
     {
+        examplePlayer = FindObjectOfType<ExamplePlayer>();
         if (uiCamera == null)
             uiCamera = Camera.main;
 
@@ -61,7 +64,10 @@ public class BrainCoinClicker : MonoBehaviour
 
     private void Update()
     {
-        if (Time.timeScale == 0) { return; }
+        if (Time.timeScale == 0 || examplePlayer.isMobile)
+        {
+            return;
+        }
 
         if (Input.GetMouseButtonDown(0) && !isAutoClickerActive)
         {
@@ -84,7 +90,7 @@ public class BrainCoinClicker : MonoBehaviour
         }
     }
 
-    private void AttemptClick()
+    public void AttemptClick()
     {
         if (Time.time - lastClickTime < clickCooldown)
         {

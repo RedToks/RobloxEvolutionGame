@@ -19,15 +19,17 @@ namespace KinematicCharacterController.Examples
         public Button jumpButton;    // 🔹 Кнопка прыжка
         public Button zoomInButton;  // 🔹 Кнопка приближения камеры
         public Button zoomOutButton; // 🔹 Кнопка отдаления камеры
+        public Button ClickButton;    // 🔹 Кнопка для получения монет
 
-        private bool isMobile;
+        public bool isMobile { get; private set; }
         private bool jumpPressed; // Флаг для прыжка
+        private BrainCoinClicker brainCoinClicker;
 
         private void Start()
         {
             // Определяем платформу
             isMobile = Application.isMobilePlatform; // 🔹 Здесь можно определить, мобильное ли устройство
-
+            brainCoinClicker = FindObjectOfType<BrainCoinClicker>();
             // Настраиваем CanvasGroup для мобильного управления
             if (mobileUI != null)
             {
@@ -41,6 +43,7 @@ namespace KinematicCharacterController.Examples
                 jumpButton?.onClick.AddListener(OnJumpPressed);
                 zoomInButton?.onClick.AddListener(() => AdjustZoom(-1f));
                 zoomOutButton?.onClick.AddListener(() => AdjustZoom(1f));
+                ClickButton?.onClick.AddListener(OnCoinButtonPressed); // Добавляем обработчик для кнопки монет
             }
 
             // Камера следует за персонажем
@@ -123,6 +126,11 @@ namespace KinematicCharacterController.Examples
         private void AdjustZoom(float amount)
         {
             CharacterCamera.TargetDistance += amount;
+        }
+
+        private void OnCoinButtonPressed()
+        {
+            brainCoinClicker.AttemptClick();
         }
     }
 }

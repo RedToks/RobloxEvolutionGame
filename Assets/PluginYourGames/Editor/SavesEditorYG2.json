@@ -19,19 +19,262 @@
     2.0,
     3.0,
     4.0,
-    5.0
+    5.0,
+    6.0,
+    7.0
   ],
-  "bonusTimerRemaining": 546.2964,
-  "lastExitTime": "19.03.2025 10:34:57",
-  "brainCurrency": 47250,
-  "coinCurrency": 0,
-  "allPets": [],
-  "selectedPets": [
+  "bonusTimerRemaining": 541.0,
+  "lastExitTime": "20.03.2025 11:31:06",
+  "brainCurrency": 481800,
+  "coinCurrency": 92730,
+  "allPets": [
     {
-      "IconName": "Dino",
-      "PrefabName": "Dino",
+      "IconName": "Overlord",
+      "PrefabName": "OverlordLOW",
+      "Power": 150.0,
+      "Rarity": 2
+    },
+    {
+      "IconName": "PuppetDragon",
+      "PrefabName": "PuppetDragonLOW",
+      "Power": 100.0,
+      "Rarity": 1
+    },
+    {
+      "IconName": "PuppetDragon",
+      "PrefabName": "PuppetDragonLOW",
+      "Power": 100.0,
+      "Rarity": 1
+    },
+    {
+      "IconName": "Turkey",
+      "PrefabName": "GiantFallTurkeyLOW",
+      "Power": 55.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Turkey",
+      "PrefabName": "GiantFallTurkeyLOW",
+      "Power": 55.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Turkey",
+      "PrefabName": "GiantFallTurkeyLOW",
+      "Power": 55.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Turkey",
+      "PrefabName": "GiantFallTurkeyLOW",
+      "Power": 55.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Turkey",
+      "PrefabName": "GiantFallTurkeyLOW",
+      "Power": 55.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Turkey",
+      "PrefabName": "GiantFallTurkeyLOW",
+      "Power": 55.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Turkey",
+      "PrefabName": "GiantFallTurkeyLOW",
+      "Power": 55.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "CandyLord",
+      "PrefabName": "CandyLordLOW",
+      "Power": 50.0,
+      "Rarity": 2
+    },
+    {
+      "IconName": "Serpent",
+      "PrefabName": "SerpentLOW",
+      "Power": 30.0,
+      "Rarity": 1
+    },
+    {
+      "IconName": "Serpent",
+      "PrefabName": "SerpentLOW",
+      "Power": 30.0,
+      "Rarity": 1
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Alien",
+      "PrefabName": "AlienLOW",
+      "Power": 20.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Inky Guardian",
+      "PrefabName": "InkyGuardianLOW",
+      "Power": 15.0,
+      "Rarity": 2
+    },
+    {
+      "IconName": "DarkDragon",
+      "PrefabName": "DarkDragonLOW",
       "Power": 5.0,
       "Rarity": 1
+    },
+    {
+      "IconName": "DarkDragon",
+      "PrefabName": "DarkDragonLOW",
+      "Power": 5.0,
+      "Rarity": 1
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    },
+    {
+      "IconName": "Dino",
+      "PrefabName": "DinoLOW",
+      "Power": 2.0,
+      "Rarity": 0
+    }
+  ],
+  "selectedPets": [
+    {
+      "IconName": "PuppetDragon",
+      "PrefabName": "PuppetDragonLOW",
+      "Power": 100.0,
+      "Rarity": 1
+    },
+    {
+      "IconName": "Overlord",
+      "PrefabName": "OverlordLOW",
+      "Power": 150.0,
+      "Rarity": 2
+    },
+    {
+      "IconName": "Turkey",
+      "PrefabName": "GiantFallTurkeyLOW",
+      "Power": 55.0,
+      "Rarity": 0
     }
   ],
   "selectedHairIndex": 0,
@@ -39,14 +282,14 @@
   "selectedSkin": 0,
   "purchasedSkins": "1",
   "clickMultiplier": 1000,
-  "petMultiplier": 6000,
+  "petMultiplier": 306000,
   "isObjectsDisabled": false,
-  "isDoubleEarningsActive": true,
+  "isDoubleEarningsActive": false,
   "isDoubleNeuroEarningsActive": false,
-  "isDoubleEarningsDisabled": true,
+  "isDoubleEarningsDisabled": false,
   "isDoubleNeuroEarningsDisabled": false,
-  "playedTime": 98,
-  "nextClaimTime": "20.03.2025 10:33:59",
+  "playedTime": 90,
+  "nextClaimTime": "21.03.2025 11:30:03",
   "currentDay": 1,
   "rewardClaimed": {
     "1": false,
@@ -57,11 +300,11 @@
     "6": false,
     "7": false
   },
-  "lastSpinTime": "19.03.2025 10:33:59",
+  "lastSpinTime": "20.03.2025 11:30:02",
   "questValues": {
-    "2": 96,
-    "0": 97,
-    "1": 1
+    "2": 88,
+    "0": 111,
+    "1": 10
   },
   "questClaimed": {}
 }

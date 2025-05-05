@@ -12,6 +12,7 @@ namespace CoppraGames
         private int lastCheckedDay = -1;
 
         public NotificationIcon notificationIcon; // 🔹 Уведомление о доступной награде
+        private PetPanelUI petPanelUI;
 
         void Awake()
         {
@@ -20,6 +21,7 @@ namespace CoppraGames
 
         private void Start()
         {
+            petPanelUI = FindObjectOfType<PetPanelUI>();
             UpdateQuestNotification();
         }
 
@@ -64,6 +66,7 @@ namespace CoppraGames
 
             public Type type;
             public Sprite icon;
+            public GameObject petPrefab;
             public int count { get; private set; }
 
             public void CalculateReward()
@@ -106,7 +109,48 @@ namespace CoppraGames
         public void ClaimQuest(int index, bool isTrue)
         {
             YG2.saves.questClaimed[index] = isTrue;
+            Quest quest = System.Array.Find(quests, q => q.index == index);
+
+            if (quest != null && isTrue)
+            {
+                GiveReward(quest.rewards);
+            }
+
             YG2.SaveProgress(); // Сохраняем прогресс
+        }
+
+        void GiveReward(RewardItem reward)
+        {
+            switch (reward.type)
+            {
+                case RewardItem.Type.BrainCoins:
+                    BrainCurrency.Instance.AddBrainCurrency(reward.count);
+                    Debug.Log($"Игрок получил {reward.count} BrainCoins!");
+                    break;
+
+                case RewardItem.Type.CoinCoins:
+                    NeuroCurrency.Instance.AddCoinCurrency(reward.count);
+                    Debug.Log($"Игрок получил {reward.count} CoinCoins!");
+                    break;
+
+                case RewardItem.Type.Pets:
+                    GivePet(reward);
+                    break;
+            }
+        }
+
+        void GivePet(RewardItem reward)
+        {
+            if (reward.petPrefab != null)
+            {
+                Pet newPet = new Pet(reward.icon, reward.petPrefab, 300f, Pet.PetRarity.Special);
+                petPanelUI.AddPet(newPet);
+                Debug.Log($"Игрок получил питомца: {reward.petPrefab.name} (Сила: 300, Редкость: Special)");
+            }
+            else
+            {
+                Debug.LogWarning("Ошибка: Префаб питомца не задан в награде!");
+            }
         }
 
         public void OnAchieveQuestGoal(QuestGoals goal)

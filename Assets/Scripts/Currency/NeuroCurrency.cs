@@ -64,11 +64,6 @@ public class NeuroCurrency : MonoBehaviour
 
     public void AddCoinCurrency(long amount)
     {
-        if (BuyController.isDoubleNeuroEarningsActive)
-        {
-            amount *= 2;
-        }
-
         coinCurrency += amount;
         needsSave = true;
         UpdateUI();
